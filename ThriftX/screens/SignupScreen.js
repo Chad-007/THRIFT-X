@@ -63,10 +63,23 @@ const SignupScreen = ({ navigation }) => {
   }, [anim1, anim2, anim3, anim4, anim5]);
 
   const handleSignup = async () => {
+    if (!username || !email || !password) {
+      Alert.alert("Error", "All fields are required");
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      Alert.alert("Error", "Please enter a valid email address");
+      return;
+    }
+    if (password.length < 6) {
+      Alert.alert("Error", "Password must be at least 6 characters long");
+      return;
+    }
     try {
-      const response = await fetch("https://localhost:8082/api/signup", {
+      const response = await fetch("http://192.168.136.122:8082/api/signup", {
         method: "POST",
-        header: {
+        headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ username, email, password }),
@@ -76,7 +89,19 @@ const SignupScreen = ({ navigation }) => {
         Alert.alert("Success", "Account created successfully");
         navigation.replace("Animation");
       } else {
-        Alert.alert("Error", data.message || "Something went wrong");
+        let errorMessage = data.error || "Something went wrong";
+        if (errorMessage.includes("email_address_invalid")) {
+          errorMessage =
+            "Invalid email address. Please check your email and try again.";
+        } else if (errorMessage.includes("weak_password")) {
+          errorMessage = "Password must be at least 6 characters long.";
+        } else if (errorMessage.includes("User ID not found")) {
+          errorMessage = "Failed to create user account. Please try again.";
+        } else if (errorMessage.includes("over_email_send_rate_limit")) {
+          errorMessage =
+            "Too many signup attempts. Please wait a few minutes and try again.";
+        }
+        Alert.alert("Error", errorMessage);
       }
     } catch (error) {
       console.error("Error signing up:", error);
