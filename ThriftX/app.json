@@ -1,0 +1,33 @@
+{
+  "expo": {
+    "name": "OLX Vehicle Clone",
+    "slug": "olx-vehicle-clone",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "../assets/images/icon.png",
+    "splash": {
+      "image": ".//assets/images/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#f1b00f"
+    },
+    "updates": {
+      "fallbackToCacheTimeout": 0
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.yourcompany.olxvehicleclone"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "../assets/images/adaptive-icon.png",
+        "backgroundColor": "#f1b00f"
+      },
+      "package": "com.yourcompany.olxvehicleclone"
+    },
+    "web": {
+      "favicon": "../assets/images/favicon.png"
+    },
+    "plugins": ["expo-dev-client"]
+  }
+}
