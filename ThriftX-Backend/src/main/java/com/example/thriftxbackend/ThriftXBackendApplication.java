@@ -10,4 +10,4 @@ public class ThriftXBackendApplication {
         SpringApplication.run(ThriftXBackendApplication.class, args);
        
         }
-    }
+    }   
