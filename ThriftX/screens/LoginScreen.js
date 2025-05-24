@@ -1,5 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Animated, Easing, StyleSheet, ImageBackground } from "react-native";
+import {
+  Animated,
+  Easing,
+  StyleSheet,
+  ImageBackground,
+  Alert,
+} from "react-native";
 import styled from "styled-components/native";
 import Input from "../components/Input";
 import Button from "../components/Button";
@@ -45,11 +51,28 @@ const LoginScreen = ({ navigation }) => {
     ]).start();
   }, [anim1, anim2, anim3, anim4]);
 
-  const handleLogin = () => {
-    console.log("Logging in with:", username, password); //need to  implement the backend...
-    navigation.replace("Animation");
+  const handleLogin = async () => {
+    try {
+      const response = await fetch("http://192.168.153.122:8082/api/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ username, password }),
+      });
+      if (response.ok) {
+        Alert.alert("Login Successful", "Welcome back!");
+        navigation.replace("Animation");
+      } else if (response.status == 401) {
+        Alert.alert("Login Failed", "Invalid username or password.");
+      } else {
+        Alert.alert("Something went wrong", "Please try again later.");
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      Alert.alert("Error", "An error occurred while logging in.");
+    }
   };
-
   return (
     <ImageBackground
       source={require("../assets/images/placeholder.png")}
