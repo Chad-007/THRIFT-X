@@ -8,7 +8,7 @@ public class VehicleAd {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private  String title;
-    private String price;
+    private Integer price;
     private String description;
     private String location;
     private String category;
@@ -44,10 +44,10 @@ public class VehicleAd {
     public void setTitle(String title) {
         this.title = title;
     }
-    public String getPrice() {
+    public Integer getPrice() {
         return price;
     }
-    public void setPrice(String price) {
+    public void setPrice(Integer price) {
         this.price = price;
     }
     public String getDescription() {
@@ -79,11 +79,13 @@ public class VehicleAd {
     }
     public void setYear(String year) {
         this.year = year;
+        System.out.println("Year set to: " + year);
     }    
     public String getImageUrl() {
         return imageUrl;
     }
     public void setImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
+        System.out.println("Image URL set to: " + imageUrl);
     }
 }

@@ -72,15 +72,19 @@ const PostAdScreen = ({ navigation }) => {
       imageButtonScale.setValue(1);
       try {
         const result = await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ImagePicker.MediaTypeOptions.Images,
+          mediaTypes: ["image"],
           allowsEditing: true,
           aspect: [4, 3],
           quality: 1,
           base64: true,
         });
 
-        if (!result.canceled) {
-          setForm({ ...form, image: result.assets[0].uri });
+        if (!result.canceled && result.assets.length > 0) {
+          const base64Image = `data:image/jpeg;base64,${result.assets[0].base64}`;
+          setForm({
+            ...form,
+            image: base64Image,
+          });
         } else {
           console.log("User cancelled image picker");
         }
@@ -90,7 +94,6 @@ const PostAdScreen = ({ navigation }) => {
       }
     });
   };
-
   const handleSubmit = async () => {
     Animated.spring(submitButtonScale, {
       toValue: 0.95,
@@ -128,7 +131,7 @@ const PostAdScreen = ({ navigation }) => {
           navigation.navigate("Home");
         } else {
           const errorText = await res.text();
-          Alert.alert("Error", errorText);
+          Alert.alert("Error", errorText || "Something went wrong.");
         }
       } catch (err) {
         console.error(err);

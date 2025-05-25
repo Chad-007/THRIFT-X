@@ -5,13 +5,13 @@ package com.example.thriftxbackend.dto;
 public class VehicleAdDTO {
     public String username;
     public String title;
-    public String price;
+    public Integer price;
     public String category;
     public String location;
     public String year;
     public String mileage;
     public String description;
-    private String imageUrl;    
+    private String imageBase64;    
     public String getUsername() {
         return username;
     }
@@ -24,10 +24,10 @@ public class VehicleAdDTO {
     public void setTitle(String title) {
         this.title = title;
     }
-    public String getPrice() {
+    public Integer getPrice() {
         return price;
     }
-    public void setPrice(String price) {
+    public void setPrice(Integer price) {
         this.price = price;
     }
     public String getCategory() {
@@ -61,7 +61,10 @@ public class VehicleAdDTO {
     public void setDescription(String description) {
         this.description = description;
     }
-    public String getImageUrl() { return imageUrl; }
-    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; } 
+    public String getImageBase64() { return imageBase64; }
+    public void setImageBase64(String imageBase64) { this.imageBase64 = imageBase64;
+    System.out.println("Image Base64 set: " + imageBase64); // Debugging line
+    
+    } 
 
 }

@@ -5,13 +5,15 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.nio.file.Files;
+
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import com.example.thriftxbackend.dto.VehicleAdDTO;
 import com.example.thriftxbackend.entity.User;
 import com.example.thriftxbackend.entity.VehicleAd;
 import com.example.thriftxbackend.repository.UserRepository;
 import com.example.thriftxbackend.repository.VehicleAdRepository;
-
+import org.springframework.data.domain.Page;
 @Service
 public class VehicleAdService {
     private final VehicleAdRepository vehicleAdRepository;
@@ -34,9 +36,9 @@ public void saveAd(VehicleAdDTO dto) {
     ad.setMileage(dto.getMileage());
     ad.setDescription(dto.getDescription());
 
-    if(dto.getImageUrl() != null && !dto.getImageUrl().isEmpty()) {
+    if(dto.getImageBase64() != null && !dto.getImageBase64().isEmpty()) {
         try {
-            String base64Image = dto.getImageUrl();
+            String base64Image = dto.getImageBase64();
             if (base64Image.contains(",")) {
                 base64Image = base64Image.split(",")[1];
             }
@@ -61,7 +63,17 @@ public void saveAd(VehicleAdDTO dto) {
     } else {
         ad.setImageUrl(null);
     }
-
+    System.out.println("Saving ad: " + ad.getTitle() + " for user: " + user.getUsername());
     vehicleAdRepository.save(ad);
 }
+public Page<VehicleAd> searchAds(String search, String category, String location, Integer minPrice, Integer maxPrice, int page, int size) {
+        return vehicleAdRepository.searchVehicles(
+            (search == null || search.isEmpty()) ? null : search,
+            (category == null || category.isEmpty()) ? null : category,
+            (location == null || location.isEmpty()) ? null : location,
+            minPrice,
+            maxPrice,
+            PageRequest.of(page, size)
+        );
+    }
 }

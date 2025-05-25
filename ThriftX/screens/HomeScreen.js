@@ -14,49 +14,6 @@ import VehicleCard from "../components/VehicleCard";
 import FilterModal from "../components/FilterModal";
 import { COLORS } from "../utils/constants";
 
-const dummyVehicles = [
-  {
-    id: "1",
-    title: "Toyota Camry 2022",
-    price: 25000,
-    location: "New York, NY",
-    image: "https://images.unsplash.com/photo-1580273916550-ebdde42186d7",
-    category: "Car",
-    year: 2022,
-    mileage: 15000,
-  },
-  {
-    id: "2",
-    title: "Honda CB500F",
-    price: 6500,
-    location: "Los Angeles, CA",
-    image: "https://images.unsplash.com/photo-1558981403-c5f9899a7ef7",
-    category: "Bike",
-    year: 2020,
-    mileage: 8000,
-  },
-  {
-    id: "3",
-    title: "Tesla Model 3",
-    price: 45000,
-    location: "San Francisco, CA",
-    image: "https://images.unsplash.com/photo-1560958089-b8a1921b4e1b",
-    category: "Car",
-    year: 2023,
-    mileage: 10000,
-  },
-  {
-    id: "4",
-    title: "Yamaha R1",
-    price: 12000,
-    location: "Miami, FL",
-    image: "https://images.unsplash.com/photo-1585435557343-3b0920701803",
-    category: "Bike",
-    year: 2019,
-    mileage: 5000,
-  },
-];
-
 const HomeScreen = ({ navigation }) => {
   const [vehicles, setVehicles] = useState([]);
   const [search, setSearch] = useState("");
@@ -67,47 +24,54 @@ const HomeScreen = ({ navigation }) => {
     location: "",
   });
 
-  const [fadeAnim] = useState(() =>
-    dummyVehicles.map(() => new Animated.Value(0))
-  );
+  const fadeAnim = useRef([]).current;
   const filterButtonScale = useRef(new Animated.Value(1)).current;
   const modalAnimation = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    setVehicles(dummyVehicles);
-    dummyVehicles.forEach((_, index) => {
-      Animated.timing(fadeAnim[index], {
+    fadeAnim.length = 0;
+    vehicles.forEach(() => {
+      fadeAnim.push(new Animated.Value(0));
+    });
+
+    fadeAnim.forEach((anim, index) => {
+      Animated.timing(anim, {
         toValue: 1,
         duration: 400,
         delay: index * 150,
         useNativeDriver: true,
       }).start();
     });
-  }, []);
+  }, [vehicles]);
+
+  const fetchVehicles = async (searchTerm, filtersObj) => {
+    try {
+      let queryParams = [];
+      if (searchTerm)
+        queryParams.push(`search=${encodeURIComponent(searchTerm)}`);
+      if (filtersObj.category)
+        queryParams.push(`category=${encodeURIComponent(filtersObj.category)}`);
+      if (filtersObj.location)
+        queryParams.push(`location=${encodeURIComponent(filtersObj.location)}`);
+      if (filtersObj.priceRange) {
+        queryParams.push(`minPrice=${filtersObj.priceRange[0]}`);
+        queryParams.push(`maxPrice=${filtersObj.priceRange[1]}`);
+      }
+      const queryString = queryParams.length ? `?${queryParams.join("&")}` : "";
+
+      const response = await fetch(
+        `http://192.168.153.122:8082/api/ads${queryString}`
+      );
+      if (!response.ok) throw new Error("Failed to fetch vehicles");
+      const data = await response.json();
+      setVehicles(data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   useEffect(() => {
-    let filtered = dummyVehicles;
-    if (search) {
-      filtered = filtered.filter((vehicle) =>
-        vehicle.title.toLowerCase().includes(search.toLowerCase())
-      );
-    }
-    if (filters.category) {
-      filtered = filtered.filter(
-        (vehicle) => vehicle.category === filters.category
-      );
-    }
-    if (filters.location) {
-      filtered = filtered.filter((vehicle) =>
-        vehicle.location.toLowerCase().includes(filters.location.toLowerCase())
-      );
-    }
-    filtered = filtered.filter(
-      (vehicle) =>
-        vehicle.price >= filters.priceRange[0] &&
-        vehicle.price <= filters.priceRange[1]
-    );
-    setVehicles(filtered);
+    fetchVehicles(search, filters);
   }, [search, filters]);
 
   const applyFilters = (newFilters) => {
