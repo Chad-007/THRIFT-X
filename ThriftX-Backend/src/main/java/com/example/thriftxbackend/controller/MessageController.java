@@ -7,6 +7,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import com.example.thriftxbackend.dto.UserDetails;
 import com.example.thriftxbackend.service.UserService;
+import java.util.HashMap;
+import java.util.Map;
 @RestController
 @RequestMapping("/api")
 @CrossOrigin(origins = "*")
@@ -22,13 +24,18 @@ public class MessageController {
         return "User registered successfully";
     }
     @PostMapping("/login")
-    public ResponseEntity<String>login(@RequestBody UserDetails userDetails){
+    public ResponseEntity<Map<String,String>>login(@RequestBody UserDetails userDetails){
         boolean authenticated = userService.authenticateUser(userDetails.getusername(), userDetails.getpassword());
         if (authenticated){
-            return ResponseEntity.ok("Login successful");
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Login successful");
+            response.put("username", userDetails.getusername());
+            return ResponseEntity.ok(response);
         }
         else {
-            return ResponseEntity.status(401).body("Invalid username or password");
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Invalid username or password");
+            return ResponseEntity.status(401).body(response);
         }
     }
 }

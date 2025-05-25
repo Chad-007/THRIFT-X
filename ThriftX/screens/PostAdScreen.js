@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   StyleSheet,
   View,
@@ -8,13 +8,17 @@ import {
   ScrollView,
   Image,
   Animated,
+  Alert,
+  Platform,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { launchImageLibrary } from "react-native-image-picker";
+import * as ImagePicker from "expo-image-picker";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { COLORS } from "../utils/constants";
 
 const PostAdScreen = ({ navigation }) => {
   const [form, setForm] = useState({
+    username: "",
     title: "",
     price: "",
     category: "",
@@ -24,34 +28,112 @@ const PostAdScreen = ({ navigation }) => {
     description: "",
     image: null,
   });
+
   const imageButtonScale = useRef(new Animated.Value(1)).current;
   const submitButtonScale = useRef(new Animated.Value(1)).current;
 
-  const handleImagePick = () => {
+  useEffect(() => {
+    const loadUsername = async () => {
+      const savedUsername = await AsyncStorage.getItem("username");
+      if (savedUsername) {
+        setForm((prev) => ({ ...prev, username: savedUsername }));
+        console.log("hi");
+        console.log(savedUsername);
+      }
+    };
+    loadUsername();
+  }, []);
+
+  const requestPermission = async () => {
+    if (Platform.OS !== "web") {
+      const { status } =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert(
+          "Permission Denied",
+          "Sorry, we need camera roll permissions to make this work!"
+        );
+        return false;
+      }
+    }
+    return true;
+  };
+
+  const handleImagePick = async () => {
+    const hasPermission = await requestPermission();
+    if (!hasPermission) return;
+
     Animated.spring(imageButtonScale, {
       toValue: 0.95,
       friction: 6,
       tension: 40,
       useNativeDriver: true,
-    }).start(() => {
+    }).start(async () => {
       imageButtonScale.setValue(1);
-      launchImageLibrary({ mediaType: "photo" }, (response) => {
-        if (response.assets) {
-          setForm({ ...form, image: response.assets[0].uri });
+      try {
+        const result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ImagePicker.MediaTypeOptions.Images,
+          allowsEditing: true,
+          aspect: [4, 3],
+          quality: 1,
+          base64: true,
+        });
+
+        if (!result.canceled) {
+          setForm({ ...form, image: result.assets[0].uri });
+        } else {
+          console.log("User cancelled image picker");
         }
-      });
+      } catch (error) {
+        console.error("ImagePicker Error: ", error);
+        Alert.alert("Error", "Failed to pick image.");
+      }
     });
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     Animated.spring(submitButtonScale, {
       toValue: 0.95,
       friction: 6,
       tension: 40,
       useNativeDriver: true,
-    }).start(() => {
+    }).start(async () => {
       submitButtonScale.setValue(1);
-      navigation.navigate("Home");
+
+      const payload = {
+        username: form.username,
+        title: form.title,
+        price: parseFloat(form.price),
+        category: form.category,
+        location: form.location,
+        year: parseInt(form.year),
+        mileage: parseInt(form.mileage),
+        description: form.description,
+        imageUrl: form.image,
+      };
+
+      console.log("Submitting with username:", payload.username);
+      console.log("Payload sent:", JSON.stringify(payload));
+      try {
+        const res = await fetch("http://192.168.153.122:8082/api/ads/post", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        });
+
+        if (res.ok) {
+          Alert.alert("Success", "Ad posted successfully!");
+          navigation.navigate("Home");
+        } else {
+          const errorText = await res.text();
+          Alert.alert("Error", errorText);
+        }
+      } catch (err) {
+        console.error(err);
+        Alert.alert("Network Error", "Could not post ad");
+      }
     });
   };
 
@@ -63,7 +145,6 @@ const PostAdScreen = ({ navigation }) => {
       style={styles.container}
     >
       <ScrollView contentContainerStyle={styles.content}>
-        <Text></Text>
         <Text style={styles.title}>Post a Vehicle Ad</Text>
         <TextInput
           style={styles.input}
@@ -151,10 +232,10 @@ const PostAdScreen = ({ navigation }) => {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  content: { padding: 12, paddingBottom: 60 }, // Compact
+  content: { padding: 12, paddingBottom: 60 },
   title: {
-    fontSize: 24, // Smaller
-    color: COLORS.textPrimary, // Dark gray
+    fontSize: 24,
+    color: COLORS.textPrimary,
     fontWeight: "700",
     fontFamily: "Roboto",
     marginBottom: 16,

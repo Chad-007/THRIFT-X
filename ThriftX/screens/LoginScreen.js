@@ -9,6 +9,7 @@ import {
 import styled from "styled-components/native";
 import Input from "../components/Input";
 import Button from "../components/Button";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 const LoginScreen = ({ navigation }) => {
   const anim1 = useRef(new Animated.Value(0)).current;
   const anim2 = useRef(new Animated.Value(0)).current;
@@ -62,6 +63,10 @@ const LoginScreen = ({ navigation }) => {
       });
       if (response.ok) {
         Alert.alert("Login Successful", "Welcome back!");
+        const data = await response.json();
+        await AsyncStorage.setItem("username", data.username);
+        console.log("Login successful:", data.username);
+        console.log("anything");
         navigation.replace("Animation");
       } else if (response.status == 401) {
         Alert.alert("Login Failed", "Invalid username or password.");
