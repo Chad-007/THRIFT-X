@@ -60,7 +60,7 @@ const HomeScreen = ({ navigation }) => {
       const queryString = queryParams.length ? `?${queryParams.join("&")}` : "";
 
       const response = await fetch(
-        `http://192.168.153.122:8082/api/ads${queryString}`
+        `http://192.168.153.122:8082/api/ads/all${queryString}`
       );
       if (!response.ok) throw new Error("Failed to fetch vehicles");
       const data = await response.json();
@@ -75,7 +75,7 @@ const HomeScreen = ({ navigation }) => {
             mileage: v.mileage ?? null,
             price: v.price ?? null,
             title: v.title ?? null,
-            user: v.user ?? null,
+            user: v.userId ?? null,
             username: v.username ?? null,
             year: v.year ?? null,
           }))
@@ -113,6 +113,7 @@ const HomeScreen = ({ navigation }) => {
       useNativeDriver: true,
     }).start(() => setFilterVisible(false));
   };
+  console.log("Vehicles:", vehicles);
 
   const animateFilterButton = () => {
     filterButtonScale.setValue(0.9);

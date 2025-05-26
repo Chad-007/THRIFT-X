@@ -65,6 +65,9 @@ const LoginScreen = ({ navigation }) => {
         Alert.alert("Login Successful", "Welcome back!");
         const data = await response.json();
         await AsyncStorage.setItem("username", data.username);
+        await AsyncStorage.setItem("userID", data.id.toString());
+        console.log("User ID:", data.id);
+        console.log("Username:", data.username);
         console.log("Login successful:", data.username);
         console.log("anything");
         navigation.replace("Animation");

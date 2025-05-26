@@ -13,8 +13,8 @@ import { COLORS, formatPrice } from "../utils/constants";
 
 const VehicleDetailScreen = ({ route, navigation }) => {
   const { vehicle } = route.params;
-
-  // Helper to display a value or fallback "N/A"
+  console.log("VehicleDetailScreen rendered with vehicle:", vehicle);
+  console.log(vehicle.user);
   const displayValue = (value) =>
     value !== null && value !== undefined && value !== "" ? value : "N/A";
 
@@ -24,7 +24,6 @@ const VehicleDetailScreen = ({ route, navigation }) => {
       style={styles.container}
     >
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Vehicle Image */}
         <Image
           source={
             vehicle.image
@@ -62,17 +61,19 @@ const VehicleDetailScreen = ({ route, navigation }) => {
               }
             />
           </View>
-
-          {/* Description */}
           <Text style={styles.description}>
             {displayValue(vehicle.description)}
           </Text>
-
-          {/* Message Seller Button */}
           <TouchableOpacity
             style={styles.messageButton}
             onPress={() =>
-              navigation.navigate("Chat", { sellerId: vehicle.sellerId })
+              navigation.navigate("Main", {
+                screen: "Chat",
+                params: {
+                  sellerId: vehicle.user,
+                  adId: vehicle.id,
+                },
+              })
             }
           >
             <Icon name="message" size={24} color="#fff" />
@@ -83,15 +84,12 @@ const VehicleDetailScreen = ({ route, navigation }) => {
     </LinearGradient>
   );
 };
-
-// Smaller component for detail row
 const DetailItem = ({ label, value }) => (
   <View style={styles.detailItem}>
     <Text style={styles.detailLabel}>{label}:</Text>
     <Text style={styles.detailValue}>{value}</Text>
   </View>
 );
-
 const styles = StyleSheet.create({
   container: { flex: 1 },
   scrollContent: {

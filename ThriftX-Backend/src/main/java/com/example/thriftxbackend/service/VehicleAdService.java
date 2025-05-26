@@ -8,12 +8,15 @@ import java.nio.file.Files;
 
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
-import com.example.thriftxbackend.dto.VehicleAdDTO;
+
+import com.example.thriftxbackend.dto.VehicleAdResponseDTO;
 import com.example.thriftxbackend.entity.User;
 import com.example.thriftxbackend.entity.VehicleAd;
 import com.example.thriftxbackend.repository.UserRepository;
 import com.example.thriftxbackend.repository.VehicleAdRepository;
+
 import org.springframework.data.domain.Page;
+
 @Service
 public class VehicleAdService {
     private final VehicleAdRepository vehicleAdRepository;
@@ -23,22 +26,34 @@ public class VehicleAdService {
         this.vehicleAdRepository = vehicleAdRepository;
         this.userRepository = userRepository;
     }
-public void saveAd(VehicleAdDTO dto) {
-    User user  = userRepository.findByUsername(dto.getUsername())
-                  .orElseThrow(() -> new RuntimeException("User not found"));
-    VehicleAd ad = new VehicleAd();
-    ad.setUser(user);
-    ad.setTitle(dto.getTitle());
-    ad.setPrice(dto.getPrice());
-    ad.setCategory(dto.getCategory());
-    ad.setLocation(dto.getLocation());
-    ad.setYear(dto.getYear());
-    ad.setMileage(dto.getMileage());
-    ad.setDescription(dto.getDescription());
 
-    if(dto.getImageBase64() != null && !dto.getImageBase64().isEmpty()) {
+    public void saveAd(VehicleAdResponseDTO dto) {
+        User user = userRepository.findByUsername(dto.getUsername())
+                      .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        VehicleAd ad = new VehicleAd();
+        ad.setUser(user);
+        ad.setTitle(dto.getTitle());
+        ad.setPrice(dto.getPrice());
+        ad.setCategory(dto.getCategory());
+        ad.setLocation(dto.getLocation());
+        ad.setYear(dto.getYear());
+        ad.setMileage(dto.getMileage());
+        ad.setDescription(dto.getDescription());
+
+        if (dto.getImageUrl() != null && !dto.getImageUrl().isEmpty()) {
+            String savedPath = saveBase64Image(dto.getImageUrl());
+            ad.setImageUrl(savedPath);
+        } else {
+            ad.setImageUrl(null);
+        }
+
+        System.out.println("Saving ad: " + ad.getTitle() + " for user: " + user.getUsername());
+        vehicleAdRepository.save(ad);
+    }
+
+    private String saveBase64Image(String base64Image) {
         try {
-            String base64Image = dto.getImageBase64();
             if (base64Image.contains(",")) {
                 base64Image = base64Image.split(",")[1];
             }
@@ -46,28 +61,29 @@ public void saveAd(VehicleAdDTO dto) {
             byte[] imageBytes = Base64.getDecoder().decode(base64Image);
 
             String filename = "vehicle_" + System.currentTimeMillis() + ".jpg";
-
             java.nio.file.Path path = Paths.get("uploads/" + filename);
-
             Files.createDirectories(path.getParent());
 
             try (FileOutputStream fos = new FileOutputStream(path.toFile())) {
                 fos.write(imageBytes);
             }
 
-            ad.setImageUrl("/uploads/" + filename);
-
+            return "/uploads/" + filename;
         } catch (IOException e) {
             throw new RuntimeException("Failed to save image", e);
         }
-    } else {
-        ad.setImageUrl(null);
     }
-    System.out.println("Saving ad: " + ad.getTitle() + " for user: " + user.getUsername());
-    vehicleAdRepository.save(ad);
-}
-public Page<VehicleAd> searchAds(String search, String category, String location, Integer minPrice, Integer maxPrice, int page, int size) {
-        return vehicleAdRepository.searchVehicles(
+    public Page<VehicleAdResponseDTO> getAllAds(int page, int size) {
+        Page<VehicleAd> vehicleAds = vehicleAdRepository.findAll(PageRequest.of(page, size));
+        return vehicleAds.map(VehicleAdResponseDTO::new);
+    }
+    
+
+    public Page<VehicleAdResponseDTO> searchAds(
+            String search, String category, String location,
+            Integer minPrice, Integer maxPrice, int page, int size) {
+
+        Page<VehicleAd> vehicleAds = vehicleAdRepository.searchVehicles(
             (search == null || search.isEmpty()) ? null : search,
             (category == null || category.isEmpty()) ? null : category,
             (location == null || location.isEmpty()) ? null : location,
@@ -75,5 +91,12 @@ public Page<VehicleAd> searchAds(String search, String category, String location
             maxPrice,
             PageRequest.of(page, size)
         );
+
+        return vehicleAds.map(vehicleAd -> {
+            if (vehicleAd.getUser() == null) {
+                System.err.println("Warning: VehicleAd id " + vehicleAd.getId() + " has null user");
+            }
+            return new VehicleAdResponseDTO(vehicleAd);
+        });
     }
 }
