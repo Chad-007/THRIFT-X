@@ -18,7 +18,7 @@ public interface VehicleAdRepository extends JpaRepository<VehicleAd, Long> {
     @Query("SELECT v FROM VehicleAd v WHERE " +
            "(:search IS NULL OR LOWER(v.title) LIKE LOWER(CONCAT('%', :search, '%')) " +
            "OR LOWER(v.description) LIKE LOWER(CONCAT('%', :search, '%')) " +
-           "OR LOWER(v.year) LIKE LOWER(CONCAT('%', :search, '%'))) " +
+           "OR (v.year) LIKE (CONCAT('%', :search, '%'))) " +
            "AND (:category IS NULL OR v.category = :category) " +
            "AND (:location IS NULL OR LOWER(v.location) LIKE LOWER(CONCAT('%', :location, '%'))) " +
            "AND (:minPrice IS NULL OR v.price  >= :minPrice) " +

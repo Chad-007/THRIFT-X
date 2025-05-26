@@ -63,7 +63,7 @@ public class VehicleAdDTO {
     }
     public String getImageBase64() { return imageBase64; }
     public void setImageBase64(String imageBase64) { this.imageBase64 = imageBase64;
-    System.out.println("Image Base64 set: " + imageBase64); // Debugging line
+    System.out.println("Image Base64 set: " + imageBase64);
     
     } 
 
