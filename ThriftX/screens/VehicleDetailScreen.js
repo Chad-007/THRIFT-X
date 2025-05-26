@@ -67,12 +67,9 @@ const VehicleDetailScreen = ({ route, navigation }) => {
           <TouchableOpacity
             style={styles.messageButton}
             onPress={() =>
-              navigation.navigate("Main", {
-                screen: "Chat",
-                params: {
-                  sellerId: vehicle.user,
-                  adId: vehicle.id,
-                },
+              navigation.navigate("Chatt", {
+                sellerId: vehicle.user,
+                adId: vehicle.id,
               })
             }
           >

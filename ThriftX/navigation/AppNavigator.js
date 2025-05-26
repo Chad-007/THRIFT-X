@@ -160,6 +160,8 @@ const CustomTabBar = ({ state, descriptors, navigation }) => {
   );
 };
 
+import ChatListScreen from "../screens/ChatsListScreen";
+
 const MainTabs = () => {
   const sceneAnimation = useRef(new Animated.Value(0)).current;
 
@@ -176,14 +178,14 @@ const MainTabs = () => {
       tabBar={(props) => <CustomTabBar {...props} />}
       screenOptions={{
         tabBarStyle: {
-          backgroundColor: COLORS.primary, // Dark green
+          backgroundColor: COLORS.primary,
           borderTopWidth: 0,
           elevation: 10,
           height: 60,
           paddingBottom: 5,
         },
-        tabBarActiveTintColor: COLORS.accent, // Neon green
-        tabBarInactiveTintColor: COLORS.textPrimary, // Light text
+        tabBarActiveTintColor: COLORS.accent,
+        tabBarInactiveTintColor: COLORS.textPrimary,
         tabBarLabelStyle: { fontSize: 12, marginBottom: 5 },
         sceneContainerStyle: {
           transform: [
@@ -201,7 +203,7 @@ const MainTabs = () => {
         },
       }}
       sceneContainerStyle={{
-        backgroundColor: COLORS.background, // Dark green fallback
+        backgroundColor: COLORS.background,
       }}
     >
       <Tab.Screen
@@ -226,7 +228,7 @@ const MainTabs = () => {
       />
       <Tab.Screen
         name="Chat"
-        component={ChatScreen}
+        component={ChatListScreen}
         options={{
           headerShown: false,
           tabBarIcon: ({ color }) => (
@@ -359,9 +361,16 @@ const AppNavigator = ({ initialRoute }) => (
         cardStyleInterpolator: forPageTransition,
       }}
     />
+    <Stack.Screen
+      name="Chatt"
+      component={ChatScreen}
+      options={{
+        headerShown: false,
+        cardStyleInterpolator: forPageTransition,
+      }}
+    />
   </Stack.Navigator>
 );
-
 const styles = StyleSheet.create({
   tabBar: {
     flexDirection: "row",

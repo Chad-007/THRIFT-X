@@ -26,4 +26,9 @@ public class MessageService {
         message.setContent(dto.getContent());
         return messageRepository.save(message);
     }
+    public List<Message> getLatestConversations(String buyerId) {
+        return messageRepository.findLatestMessagesByBuyer(buyerId);
+    }
+    
+    
 }
