@@ -64,9 +64,27 @@ const HomeScreen = ({ navigation }) => {
       );
       if (!response.ok) throw new Error("Failed to fetch vehicles");
       const data = await response.json();
-      setVehicles(data);
+      const vehiclesData = Array.isArray(data.content) ? data.content : null;
+      const normalizedVehicles = vehiclesData
+        ? vehiclesData.map((v) => ({
+            id: v.id ?? null,
+            category: v.category ?? null,
+            description: v.description ?? null,
+            imageUrl: v.imageUrl ?? null,
+            location: v.location ?? null,
+            mileage: v.mileage ?? null,
+            price: v.price ?? null,
+            title: v.title ?? null,
+            user: v.user ?? null,
+            username: v.username ?? null,
+            year: v.year ?? null,
+          }))
+        : null;
+
+      setVehicles(normalizedVehicles);
     } catch (error) {
-      console.error(error);
+      console.error("Unexpected data format:", error);
+      setVehicles(null);
     }
   };
 
@@ -155,7 +173,7 @@ const HomeScreen = ({ navigation }) => {
         onClose={closeFilterModal}
         onApply={applyFilters}
         currentFilters={filters}
-        animation={modalAnimation} // Pass animation for modal transition
+        animation={modalAnimation}
       />
     </LinearGradient>
   );
@@ -215,3 +233,8 @@ const styles = StyleSheet.create({
 });
 
 export default HomeScreen;
+import PropTypes from "prop-types";
+
+HomeScreen.propTypes = {
+  navigation: PropTypes.object.isRequired,
+};

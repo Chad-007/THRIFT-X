@@ -9,3 +9,7 @@ export const COLORS = {
   inputBackground: "#FFFFFF", // White
   border: "#E5E7EB", // Light gray
 };
+export function formatPrice(price) {
+  if (typeof price !== "number") return "";
+  return "$" + price.toFixed(2);
+}

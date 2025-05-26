@@ -33,9 +33,11 @@ const VehicleCard = ({ vehicle, onPress }) => {
       >
         <View style={styles.imageContainer}>
           <Image
-            source={{
-              uri: vehicle.image || require("../assets/images/placeholder.png"),
-            }}
+            source={
+              vehicle.image
+                ? { uri: vehicle.image }
+                : require("../assets/images/placeholder.png")
+            }
             style={styles.image}
           />
           <LinearGradient
