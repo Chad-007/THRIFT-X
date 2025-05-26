@@ -21,10 +21,10 @@ public interface VehicleAdRepository extends JpaRepository<VehicleAd, Long> {
            "OR LOWER(v.year) LIKE LOWER(CONCAT('%', :search, '%'))) " +
            "AND (:category IS NULL OR v.category = :category) " +
            "AND (:location IS NULL OR LOWER(v.location) LIKE LOWER(CONCAT('%', :location, '%'))) " +
-           "AND (:minPrice IS NULL OR CAST(v.price AS integer) >= :minPrice) " +
-           "AND (:maxPrice IS NULL OR CAST(v.price AS integer) <= :maxPrice)")
+           "AND (:minPrice IS NULL OR v.price  >= :minPrice) " +
+           "AND (:maxPrice IS NULL OR v.price  <= :maxPrice)")
     Page<VehicleAd> searchVehicles(
-        @Param("search") String search,
+        @Param("search") String search,   
         @Param("category") String category,
         @Param("location") String location,
         @Param("minPrice") Integer minPrice,

@@ -23,7 +23,6 @@ import { COLORS } from "../utils/constants";
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
-// Stack transition (unchanged)
 const forPageTransition = ({ current, next, layouts }) => {
   return {
     cardStyle: {
@@ -161,7 +160,6 @@ const CustomTabBar = ({ state, descriptors, navigation }) => {
   );
 };
 
-// Bottom Tab Navigator
 const MainTabs = () => {
   const sceneAnimation = useRef(new Animated.Value(0)).current;
 
@@ -290,7 +288,6 @@ const MainTabs = () => {
   );
 };
 
-// Main Stack Navigator (unchanged)
 const AppNavigator = ({ initialRoute }) => (
   <Stack.Navigator
     initialRouteName={initialRoute}
