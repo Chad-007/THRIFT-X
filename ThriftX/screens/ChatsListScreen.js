@@ -17,7 +17,6 @@ import { LinearGradient } from "expo-linear-gradient";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { COLORS } from "../utils/constants";
 
-// Wrap FlatList with Animated.createAnimatedComponent
 const AnimatedFlatList = Animated.createAnimatedComponent(FlatList);
 
 const { width, height } = Dimensions.get("window");
@@ -52,14 +51,12 @@ const ChatsListScreen = ({ navigation }) => {
   }, [buyerId]);
 
   useEffect(() => {
-    // Animate header on mount
     Animated.timing(headerAnimation, {
       toValue: 1,
       duration: 800,
       useNativeDriver: true,
     }).start();
 
-    // Animate content fade in
     Animated.timing(fadeInAnimation, {
       toValue: 1,
       duration: 600,
@@ -69,7 +66,6 @@ const ChatsListScreen = ({ navigation }) => {
   }, []);
 
   useEffect(() => {
-    // Enhanced staggered animations for conversation cards
     conversations.forEach((_, index) => {
       if (!animationRefs.has(index)) {
         animationRefs.set(index, {
@@ -106,7 +102,6 @@ const ChatsListScreen = ({ navigation }) => {
 
     Animated.stagger(50, animations).start();
 
-    // Cleanup unused animation refs
     return () => {
       animationRefs.forEach((_, index) => {
         if (index >= conversations.length) {
@@ -139,7 +134,7 @@ const ChatsListScreen = ({ navigation }) => {
           groupedMap.set(groupKey, {
             ...message,
             otherUserId,
-            isUnread: Math.random() > 0.5, // Simulate unread status
+            isUnread: Math.random() > 0.5,
           });
         } else {
           const existing = groupedMap.get(groupKey);
@@ -421,7 +416,7 @@ const styles = StyleSheet.create({
     paddingTop: Platform.OS === "ios" ? 60 : 40,
     paddingHorizontal: 24,
     paddingBottom: 20,
-    backgroundColor: "rgba(0, 0, 0, 0.3)", // Darker header background
+    backgroundColor: "rgba(0, 0, 0, 0.3)",
   },
   headerContent: {
     alignItems: "center",
@@ -447,7 +442,7 @@ const styles = StyleSheet.create({
     paddingBottom: 100,
   },
   conversationCard: {
-    backgroundColor: "rgba(0, 0, 0, 0.5)", // Darker card background
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
     borderRadius: 20,
     marginVertical: 6,
   },
@@ -467,7 +462,7 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: COLORS.accent + "80", // Slightly more opaque for contrast
+    backgroundColor: COLORS.accent + "80",
     justifyContent: "center",
     alignItems: "center",
     marginRight: 16,
@@ -503,7 +498,7 @@ const styles = StyleSheet.create({
   userText: {
     fontSize: 18,
     fontWeight: "600",
-    color: "#fff", // Brighter text for readability
+    color: "#fff",
     flex: 1,
   },
   unreadUserText: {
@@ -512,7 +507,7 @@ const styles = StyleSheet.create({
   },
   messageText: {
     fontSize: 15,
-    color: "rgba(255, 255, 255, 0.85)", // Slightly brighter for readability
+    color: "rgba(255, 255, 255, 0.85)",
     lineHeight: 20,
     marginRight: 8,
   },

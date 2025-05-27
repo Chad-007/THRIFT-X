@@ -43,11 +43,9 @@ const ChatScreen = ({ route, navigation }) => {
     if (buyerId) {
       if (sellerId && adId) {
         fetchChats(buyerId, sellerId, adId);
-        // Set up polling for new messages
         const interval = setInterval(() => {
           fetchChats(buyerId, sellerId, adId);
-        }, 2000); // Poll every 2 seconds
-
+        }, 2000);
         return () => clearInterval(interval);
       } else {
         fetchPreviousChats(buyerId);
@@ -55,7 +53,6 @@ const ChatScreen = ({ route, navigation }) => {
     }
   }, [buyerId, sellerId, adId]);
 
-  // Focus detection for real-time updates
   useEffect(() => {
     const unsubscribe = navigation.addListener("focus", () => {
       if (buyerId && sellerId && adId) {
@@ -70,14 +67,13 @@ const ChatScreen = ({ route, navigation }) => {
     const keyboardWillShowListener = Keyboard.addListener(
       Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow",
       (e) => {
-        const height = e.endCoordinates.height + 10; // Add 10px spacing above keyboard
+        const height = e.endCoordinates.height + 10;
         setKeyboardHeight(height);
         Animated.timing(inputContainerBottom, {
           toValue: height,
           duration: Platform.OS === "ios" ? e.duration : 250,
           useNativeDriver: false,
         }).start();
-        // Scroll to end when keyboard shows
         setTimeout(
           () => {
             flatListRef.current?.scrollToEnd({ animated: true });
@@ -138,10 +134,8 @@ const ChatScreen = ({ route, navigation }) => {
       );
       const data = await response.json();
 
-      // Only update if there are new messages to avoid unnecessary re-renders
       if (JSON.stringify(data) !== JSON.stringify(messages)) {
         setMessages(data);
-        // Auto-scroll to bottom when new messages arrive
         setTimeout(() => {
           flatListRef.current?.scrollToEnd({ animated: true });
         }, 100);
@@ -256,7 +250,6 @@ const ChatScreen = ({ route, navigation }) => {
         style={styles.backgroundImage}
         resizeMode="cover"
       >
-        {/* Overlay to make text more readable */}
         <View style={styles.overlay} />
 
         <FlatList
@@ -321,7 +314,7 @@ const styles = StyleSheet.create({
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0, 0, 0, 0.3)", // Dark overlay for better text readability
+    backgroundColor: "rgba(0, 0, 0, 0.3)",
   },
   chatList: {
     padding: 16,

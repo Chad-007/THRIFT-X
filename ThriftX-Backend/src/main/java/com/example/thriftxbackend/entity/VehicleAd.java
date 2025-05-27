@@ -37,6 +37,7 @@
         }
         public void setUsername(String username) {
             this.username = username;
+            System.out.println("Setting the username: " + username);
         }
         public String getTitle() {
             return title;

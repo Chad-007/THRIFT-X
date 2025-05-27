@@ -33,6 +33,7 @@ public class VehicleAdService {
         
         VehicleAd ad = new VehicleAd();
         ad.setUser(user);
+        ad.setUsername(dto.getUsername());
         ad.setTitle(dto.getTitle());
         ad.setPrice(dto.getPrice());
         ad.setCategory(dto.getCategory());
