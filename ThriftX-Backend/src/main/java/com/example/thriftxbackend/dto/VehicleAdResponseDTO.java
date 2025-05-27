@@ -19,8 +19,9 @@ public class VehicleAdResponseDTO {
     }
     public VehicleAdResponseDTO(VehicleAd vehicleAd) {
         this.id = vehicleAd.getId();
-        this.username = vehicleAd.getUsername();
-        this.userId = vehicleAd.getUser() != null ? vehicleAd.getUser().getId() : null; 
+        this.username = vehicleAd.getUsername() != null ? vehicleAd.getUsername()
+                          : (vehicleAd.getUser() != null ? vehicleAd.getUser().getUsername() : null);
+        this.userId = vehicleAd.getUser() != null ? vehicleAd.getUser().getId() : null;
         this.title = vehicleAd.getTitle();
         this.price = vehicleAd.getPrice();
         this.category = vehicleAd.getCategory();

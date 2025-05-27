@@ -30,6 +30,8 @@ const HomeScreen = ({ navigation }) => {
 
   useEffect(() => {
     fadeAnim.length = 0;
+    if (!vehicles || vehicles.length === 0) return; // guard clause
+
     vehicles.forEach(() => {
       fadeAnim.push(new Animated.Value(0));
     });
@@ -60,9 +62,14 @@ const HomeScreen = ({ navigation }) => {
       const queryString = queryParams.length ? `?${queryParams.join("&")}` : "";
 
       const response = await fetch(
-        `http://192.168.153.122:8082/api/ads/all${queryString}`
+        `http://192.168.153.122:8082/api/ads${queryString}`
       );
-      if (!response.ok) throw new Error("Failed to fetch vehicles");
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(
+          `Failed to fetch vehicles: ${response.status} - ${errorText}`
+        );
+      }
       const data = await response.json();
       const vehiclesData = Array.isArray(data.content) ? data.content : null;
       const normalizedVehicles = vehiclesData
@@ -84,7 +91,7 @@ const HomeScreen = ({ navigation }) => {
       setVehicles(normalizedVehicles);
     } catch (error) {
       console.error("Unexpected data format:", error);
-      setVehicles(null);
+      setVehicles([]);
     }
   };
 

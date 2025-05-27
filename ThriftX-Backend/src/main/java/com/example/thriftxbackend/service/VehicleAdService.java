@@ -29,7 +29,7 @@ public class VehicleAdService {
 
     public void saveAd(VehicleAdResponseDTO dto) {
         User user = userRepository.findByUsername(dto.getUsername())
-                      .orElseThrow(() -> new RuntimeException("User not found"));
+                    .orElseThrow(() -> new RuntimeException("User not found"));
         
         VehicleAd ad = new VehicleAd();
         ad.setUser(user);
@@ -74,30 +74,34 @@ public class VehicleAdService {
             throw new RuntimeException("Failed to save image", e);
         }
     }
+
     public Page<VehicleAdResponseDTO> getAllAds(int page, int size) {
         Page<VehicleAd> vehicleAds = vehicleAdRepository.findAll(PageRequest.of(page, size));
         return vehicleAds.map(VehicleAdResponseDTO::new);
     }
     
-
     public Page<VehicleAdResponseDTO> searchAds(
-            String search, String category, String location,
-            Integer minPrice, Integer maxPrice, int page, int size) {
+        String search, String category, String location,
+        Integer minPrice, Integer maxPrice, int page, int size) {
+        try {
+            search = (search == null || search.trim().isEmpty()) ? null : search.trim();
+            category = (category == null || category.trim().isEmpty()) ? null : category.trim();
+            location = (location == null || location.trim().isEmpty()) ? null : location.trim();
 
-        Page<VehicleAd> vehicleAds = vehicleAdRepository.searchVehicles(
-            (search == null || search.isEmpty()) ? null : search,
-            (category == null || category.isEmpty()) ? null : category,
-            (location == null || location.isEmpty()) ? null : location,
-            minPrice,
-            maxPrice,
-            PageRequest.of(page, size)
-        );
+            Page<VehicleAd> vehicleAds = vehicleAdRepository.searchVehicles(
+                search, category, location, minPrice, maxPrice, PageRequest.of(page, size)
+            );
 
-        return vehicleAds.map(vehicleAd -> {
-            if (vehicleAd.getUser() == null) {
-                System.err.println("Warning: VehicleAd id " + vehicleAd.getId() + " has null user");
-            }
-            return new VehicleAdResponseDTO(vehicleAd);
-        });
+           
+            return vehicleAds.map(vehicleAd -> {
+                if (vehicleAd.getUser() == null) {
+                    System.err.println("Warning: VehicleAd id " + vehicleAd.getId() + " has null user");
+                }
+                return new VehicleAdResponseDTO(vehicleAd);
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw e;
+        }
     }
 }
