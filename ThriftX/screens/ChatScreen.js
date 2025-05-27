@@ -10,6 +10,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const ChatScreen = ({ route, navigation }) => {
   const sellerId = route?.params?.sellerId;
+  console.log("ChatScreen rendered with sellerId:", sellerId);
   const adId = route?.params?.adId;
   const [buyerId, setBuyerId] = useState(null);
   const [messages, setMessages] = useState([]);

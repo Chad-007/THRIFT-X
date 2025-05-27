@@ -30,20 +30,30 @@ const ChatsListScreen = ({ navigation }) => {
       const groupedMap = new Map();
 
       data.forEach((message) => {
-        const sellerId =
-          message.senderid === buyerId ? message.receiverid : message.senderid;
-        const key = `${sellerId}-${message.adid}`;
+        const isBuyerSender = message.senderid === buyerId;
+        const otherUserId = isBuyerSender
+          ? message.receiverid
+          : message.senderid;
 
-        if (!groupedMap.has(key)) {
-          groupedMap.set(key, { ...message, sellerId });
+        // Group by other user + adId combo
+        const groupKey = `${otherUserId}-${message.adid}`;
+
+        if (!groupedMap.has(groupKey)) {
+          groupedMap.set(groupKey, {
+            ...message,
+            otherUserId,
+          });
         } else {
-          const existing = groupedMap.get(key);
+          const existing = groupedMap.get(groupKey);
           const existingTime = new Date(
             existing.timestamp || existing.createdAt
           );
           const currentTime = new Date(message.timestamp || message.createdAt);
           if (currentTime > existingTime) {
-            groupedMap.set(key, { ...message, sellerId });
+            groupedMap.set(groupKey, {
+              ...message,
+              otherUserId,
+            });
           }
         }
       });
@@ -64,12 +74,14 @@ const ChatsListScreen = ({ navigation }) => {
       }}
       onPress={() =>
         navigation.navigate("Chatt", {
-          sellerId: item.sellerId,
-          adId: item.adid,
+          sellerId: item.otherUserId, // ✅ Correctly pass other user as sellerId
+          adId: item.adid, // ✅ Use adid
         })
       }
     >
-      <Text style={{ fontWeight: "bold" }}>Seller: {item.sellerId}</Text>
+      <Text style={{ fontWeight: "bold" }}>
+        Chat with user: {item.otherUserId}
+      </Text>
       <Text numberOfLines={1} style={{ color: "#555" }}>
         {item.content}
       </Text>
@@ -80,7 +92,7 @@ const ChatsListScreen = ({ navigation }) => {
     <View style={{ flex: 1 }}>
       <FlatList
         data={conversations}
-        keyExtractor={(item) => `${item.sellerId}-${item.adid}`}
+        keyExtractor={(item) => `${item.otherUserId}-${item.adid}`}
         renderItem={renderItem}
         ListEmptyComponent={() => (
           <Text style={{ padding: 20, textAlign: "center" }}>

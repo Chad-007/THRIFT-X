@@ -87,12 +87,11 @@ const forPageTransition = ({ current, next, layouts }) => {
   };
 };
 
-// Custom Tab Bar Component
 const CustomTabBar = ({ state, descriptors, navigation }) => {
   const focusedAnimation = useRef(new Animated.Value(1)).current;
 
   const animateTabPress = () => {
-    focusedAnimation.setValue(0.8); // Scale down on press
+    focusedAnimation.setValue(0.8);
     Animated.spring(focusedAnimation, {
       toValue: 1,
       friction: 6,
