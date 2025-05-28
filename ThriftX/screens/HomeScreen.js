@@ -1,3 +1,6 @@
+// This is a significantly enhanced version of the HomeScreen component
+// with a modern, futuristic UI, smooth transitions, and animations
+
 import React, { useState, useEffect, useRef } from "react";
 import {
   StyleSheet,
@@ -7,12 +10,16 @@ import {
   TextInput,
   TouchableOpacity,
   Animated,
+  Dimensions,
+  Keyboard,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import VehicleCard from "../components/VehicleCard";
 import FilterModal from "../components/FilterModal";
 import { COLORS } from "../utils/constants";
+
+const { width } = Dimensions.get("window");
 
 const HomeScreen = ({ navigation }) => {
   const [vehicles, setVehicles] = useState([]);
@@ -27,20 +34,40 @@ const HomeScreen = ({ navigation }) => {
   const fadeAnim = useRef([]).current;
   const filterButtonScale = useRef(new Animated.Value(1)).current;
   const modalAnimation = useRef(new Animated.Value(0)).current;
+  const headerTranslate = useRef(new Animated.Value(-100)).current;
+  const searchOpacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    fadeAnim.length = 0;
-    if (!vehicles || vehicles.length === 0) return; // guard clause
+    Animated.parallel([
+      Animated.timing(headerTranslate, {
+        toValue: 0,
+        duration: 600,
+        useNativeDriver: true,
+      }),
+      Animated.timing(searchOpacity, {
+        toValue: 1,
+        duration: 800,
+        delay: 300,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
 
-    vehicles.forEach(() => {
-      fadeAnim.push(new Animated.Value(0));
+  useEffect(() => {
+    if (!vehicles || vehicles.length === 0) return;
+
+    // Reset fadeAnim
+    fadeAnim.length = vehicles.length;
+
+    vehicles.forEach((_, index) => {
+      fadeAnim[index] = new Animated.Value(0);
     });
 
     fadeAnim.forEach((anim, index) => {
       Animated.timing(anim, {
         toValue: 1,
         duration: 400,
-        delay: index * 150,
+        delay: index * 100,
         useNativeDriver: true,
       }).start();
     });
@@ -60,37 +87,30 @@ const HomeScreen = ({ navigation }) => {
         queryParams.push(`maxPrice=${filtersObj.priceRange[1]}`);
       }
       const queryString = queryParams.length ? `?${queryParams.join("&")}` : "";
-
       const response = await fetch(
         `http://192.168.153.122:8082/api/ads${queryString}`
       );
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(
-          `Failed to fetch vehicles: ${response.status} - ${errorText}`
-        );
-      }
+      if (!response.ok) throw new Error(`Failed to fetch: ${response.status}`);
+
       const data = await response.json();
-      const vehiclesData = Array.isArray(data.content) ? data.content : null;
-      const normalizedVehicles = vehiclesData
-        ? vehiclesData.map((v) => ({
-            id: v.id ?? null,
-            category: v.category ?? null,
-            description: v.description ?? null,
-            imageUrl: v.imageUrl ?? null,
-            location: v.location ?? null,
-            mileage: v.mileage ?? null,
-            price: v.price ?? null,
-            title: v.title ?? null,
-            user: v.userId ?? null,
-            username: v.username ?? null,
-            year: v.year ?? null,
-          }))
-        : null;
+      const vehiclesData = Array.isArray(data.content) ? data.content : [];
+      const normalizedVehicles = vehiclesData.map((v) => ({
+        id: v.id ?? null,
+        category: v.category ?? null,
+        description: v.description ?? null,
+        imageUrl: v.imageUrl ?? null,
+        location: v.location ?? null,
+        mileage: v.mileage ?? null,
+        price: v.price ?? null,
+        title: v.title ?? null,
+        user: v.userId ?? null,
+        username: v.username ?? null,
+        year: v.year ?? null,
+      }));
 
       setVehicles(normalizedVehicles);
     } catch (error) {
-      console.error("Unexpected data format:", error);
+      console.error("Fetch error:", error);
       setVehicles([]);
     }
   };
@@ -120,7 +140,6 @@ const HomeScreen = ({ navigation }) => {
       useNativeDriver: true,
     }).start(() => setFilterVisible(false));
   };
-  console.log("Vehicles:", vehicles);
 
   const animateFilterButton = () => {
     filterButtonScale.setValue(0.9);
@@ -135,15 +154,20 @@ const HomeScreen = ({ navigation }) => {
 
   return (
     <LinearGradient
-      colors={[COLORS.primary, COLORS.secondary]}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
+      colors={[COLORS.dark, COLORS.black]}
       style={styles.container}
     >
-      <View style={styles.header}>
-        <Text style={styles.title}>Thriftx</Text>
-      </View>
-      <View style={styles.searchContainer}>
+      <Animated.View
+        style={[
+          styles.header,
+          { transform: [{ translateY: headerTranslate }] },
+        ]}
+      >
+        <Text style={styles.title}>ThriftX</Text>
+      </Animated.View>
+      <Animated.View
+        style={[styles.searchContainer, { opacity: searchOpacity }]}
+      >
         <TextInput
           style={styles.searchInput}
           placeholder="Search vehicles..."
@@ -159,20 +183,47 @@ const HomeScreen = ({ navigation }) => {
             <Icon name="filter-list" size={20} color={COLORS.textPrimary} />
           </Animated.View>
         </TouchableOpacity>
-      </View>
+      </Animated.View>
       <FlatList
         data={vehicles}
         keyExtractor={(item) => item.id}
-        renderItem={({ item, index }) => (
-          <Animated.View style={{ opacity: fadeAnim[index] }}>
-            <VehicleCard
-              vehicle={item}
-              onPress={() =>
-                navigation.navigate("VehicleDetail", { vehicle: item })
-              }
-            />
-          </Animated.View>
-        )}
+        renderItem={({ item, index }) => {
+          const animValue = fadeAnim[index] || new Animated.Value(1); // fallback to 1
+
+          return (
+            <Animated.View
+              style={{
+                opacity: animValue,
+                transform: [
+                  {
+                    scale: animValue.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [0.95, 1],
+                    }),
+                  },
+                ],
+              }}
+            >
+              <VehicleCard
+                vehicle={item}
+                onPress={() =>
+                  navigation.navigate("VehicleDetail", { vehicle: item })
+                }
+                animatedStyle={{
+                  opacity: animValue,
+                  transform: [
+                    {
+                      scale: animValue.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [0.95, 1],
+                      }),
+                    },
+                  ],
+                }}
+              />
+            </Animated.View>
+          );
+        }}
         contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}
       />
@@ -190,59 +241,55 @@ const HomeScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 40,
+    paddingTop: 50,
+    paddingBottom: 10,
   },
   header: {
-    padding: 12,
+    padding: 16,
     alignItems: "center",
   },
   title: {
-    fontSize: 24,
-    fontWeight: "700",
-    color: COLORS.textPrimary,
+    fontSize: 30,
+    fontWeight: "800",
+    color: COLORS.accent,
     fontFamily: "Roboto",
-    letterSpacing: 0.5,
+    letterSpacing: 1,
   },
   searchContainer: {
     flexDirection: "row",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
     alignItems: "center",
   },
   searchInput: {
     flex: 1,
-    backgroundColor: COLORS.inputBackground, // White
-    borderRadius: 20,
-    padding: 10,
-    fontSize: 14,
+    backgroundColor: COLORS.white,
+    borderRadius: 24,
+    padding: 12,
+    fontSize: 16,
     color: COLORS.textPrimary,
-    marginRight: 8,
+    marginRight: 10,
     borderWidth: 1,
-    borderColor: COLORS.border, // Light gray
+    borderColor: COLORS.border,
     fontFamily: "Roboto",
     shadowColor: COLORS.textSecondary,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 5,
   },
   filterButton: {
-    backgroundColor: COLORS.accent, // Teal
-    padding: 10,
-    borderRadius: 20,
+    backgroundColor: COLORS.accent,
+    padding: 12,
+    borderRadius: 24,
     shadowColor: COLORS.textSecondary,
-    shadowOffset: { width: 0, height: 1 },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
-    shadowRadius: 3,
+    shadowRadius: 6,
   },
   list: {
-    padding: 12,
-    paddingBottom: 60,
+    padding: 16,
+    paddingBottom: 100,
   },
 });
 
 export default HomeScreen;
-import PropTypes from "prop-types";
-
-HomeScreen.propTypes = {
-  navigation: PropTypes.object.isRequired,
-};

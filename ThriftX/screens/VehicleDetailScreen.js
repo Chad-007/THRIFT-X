@@ -1,172 +1,171 @@
-import React from "react";
+import React, { useRef, useEffect } from "react";
 import {
   StyleSheet,
   View,
   Text,
   Image,
   ScrollView,
+  Animated,
+  Dimensions,
   TouchableOpacity,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import Icon from "react-native-vector-icons/MaterialIcons";
-import { COLORS, formatPrice } from "../utils/constants";
+import { COLORS } from "../utils/constants";
+
+const { width } = Dimensions.get("window");
 
 const VehicleDetailScreen = ({ route, navigation }) => {
   const { vehicle } = route.params;
-  console.log("VehicleDetailScreen rendered with vehicle:", vehicle);
-  console.log(vehicle.user);
-  const displayValue = (value) =>
-    value !== null && value !== undefined && value !== "" ? value : "N/A";
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 600,
+      useNativeDriver: true,
+    }).start();
+  }, []);
 
   return (
     <LinearGradient
-      colors={[COLORS.primary, COLORS.secondary]}
+      colors={[COLORS.dark, COLORS.black]}
       style={styles.container}
     >
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <Animated.ScrollView
+        style={{ opacity: fadeAnim }}
+        contentContainerStyle={{ paddingBottom: 40 }}
+      >
         <Image
           source={
-            vehicle.image
-              ? { uri: vehicle.image }
+            vehicle.imageUrl
+              ? { uri: vehicle.imageUrl }
               : require("../assets/images/placeholder.png")
           }
           style={styles.image}
           resizeMode="cover"
         />
-
-        <View style={styles.contentCard}>
-          <View style={styles.headerRow}>
-            <Text style={styles.title}>{displayValue(vehicle.title)}</Text>
+        <View style={styles.infoSection}>
+          <Text style={styles.title}>{vehicle.title || "Unknown Model"}</Text>
+          <Text style={styles.yearPrice}>
+            <Text style={styles.year}>{vehicle.year || "Year N/A"}</Text> •{" "}
             <Text style={styles.price}>
-              {formatPrice(vehicle.price) || "N/A"}
+              ${vehicle.price?.toLocaleString() || "0"}
             </Text>
+          </Text>
+          <Text style={styles.location}>
+            {vehicle.location || "Location Unknown"}
+          </Text>
+
+          <View style={styles.stats}>
+            <View style={styles.statItem}>
+              <Icon name="speed" size={22} color={COLORS.accent} />
+              <Text style={styles.statText}>
+                {vehicle.mileage ? `${vehicle.mileage} km` : "N/A"}
+              </Text>
+            </View>
+            <View style={styles.statItem}>
+              <Icon name="category" size={22} color={COLORS.accent} />
+              <Text style={styles.statText}>{vehicle.category || "N/A"}</Text>
+            </View>
           </View>
 
-          <View style={styles.detailsSection}>
-            <DetailItem
-              label="Category"
-              value={displayValue(vehicle.category)}
-            />
-            <DetailItem
-              label="Location"
-              value={displayValue(vehicle.location)}
-            />
-            <DetailItem label="Year" value={displayValue(vehicle.year)} />
-            <DetailItem
-              label="Mileage"
-              value={
-                vehicle.mileage !== null && vehicle.mileage !== undefined
-                  ? `${vehicle.mileage} km`
-                  : "N/A"
-              }
-            />
-          </View>
+          <Text style={styles.sectionTitle}>Description</Text>
           <Text style={styles.description}>
-            {displayValue(vehicle.description)}
+            {vehicle.description || "No description available."}
           </Text>
-          <TouchableOpacity
-            style={styles.messageButton}
-            onPress={() =>
-              navigation.navigate("Chatt", {
-                sellerId: vehicle.user,
-                adId: vehicle.id,
-              })
-            }
-          >
-            <Icon name="message" size={24} color="#fff" />
-            <Text style={styles.messageButtonText}>Message Seller</Text>
-          </TouchableOpacity>
         </View>
-      </ScrollView>
+      </Animated.ScrollView>
+
+      <TouchableOpacity
+        style={styles.backButton}
+        onPress={() => navigation.goBack()}
+        activeOpacity={0.7}
+      >
+        <Icon name="arrow-back-ios" size={28} color={COLORS.textPrimary} />
+      </TouchableOpacity>
     </LinearGradient>
   );
 };
-const DetailItem = ({ label, value }) => (
-  <View style={styles.detailItem}>
-    <Text style={styles.detailLabel}>{label}:</Text>
-    <Text style={styles.detailValue}>{value}</Text>
-  </View>
-);
+
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  scrollContent: {
-    paddingBottom: 20,
+  container: {
+    flex: 1,
   },
   image: {
-    width: "100%",
-    height: 300,
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
+    width,
+    height: width * 0.6,
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
+    backgroundColor: COLORS.dark,
   },
-  contentCard: {
-    backgroundColor: "rgba(255, 255, 255, 0.15)",
-    marginHorizontal: 16,
-    marginTop: -30,
-    borderRadius: 20,
-    padding: 20,
-    shadowColor: "#000",
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
-  },
-  headerRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 16,
-    alignItems: "center",
+  infoSection: {
+    padding: 24,
   },
   title: {
     fontSize: 26,
-    fontWeight: "bold",
-    color: "#fff",
-    flex: 1,
-    marginRight: 10,
-  },
-  price: {
-    fontSize: 22,
-    fontWeight: "600",
+    fontWeight: "800",
     color: COLORS.accent,
-  },
-  detailsSection: {
-    marginBottom: 20,
-  },
-  detailItem: {
-    flexDirection: "row",
+    fontFamily: "Roboto",
     marginBottom: 8,
   },
-  detailLabel: {
-    fontWeight: "600",
-    color: "#222",
-    width: 90,
+  yearPrice: {
+    fontSize: 16,
+    color: COLORS.textSecondary,
+    marginBottom: 6,
   },
-  detailValue: {
-    color: "#222",
-    flexShrink: 1,
+  year: {
+    fontWeight: "700",
+    color: COLORS.accent,
+  },
+  price: {
+    fontWeight: "800",
+    color: COLORS.accent,
+  },
+  location: {
+    fontSize: 15,
+    fontStyle: "italic",
+    color: COLORS.textSecondary,
+    marginBottom: 16,
+  },
+  stats: {
+    flexDirection: "row",
+    gap: 30,
+    marginBottom: 24,
+  },
+  statItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  statText: {
+    color: COLORS.accent,
+    fontWeight: "700",
+    fontSize: 15,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: COLORS.accent,
+    marginBottom: 8,
   },
   description: {
     fontSize: 16,
-    color: "#222",
-    marginBottom: 30,
-    lineHeight: 22,
+    color: COLORS.textPrimary,
+    lineHeight: 24,
   },
-  messageButton: {
-    flexDirection: "row",
-    backgroundColor: COLORS.accent,
-    paddingVertical: 14,
-    paddingHorizontal: 24,
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
+  backButton: {
+    position: "absolute",
+    top: 50,
+    left: 16,
+    backgroundColor: COLORS.cardBackground,
+    padding: 10,
+    borderRadius: 30,
     shadowColor: COLORS.accent,
-    shadowOpacity: 0.6,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 6 },
-  },
-  messageButtonText: {
-    color: "#fff",
-    fontSize: 20,
-    marginLeft: 10,
-    fontWeight: "600",
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 10,
   },
 });
 

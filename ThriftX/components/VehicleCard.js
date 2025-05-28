@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React from "react";
 import {
   StyleSheet,
   View,
@@ -8,126 +8,123 @@ import {
   Animated,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { formatPrice } from "../utils/helpers";
+import Icon from "react-native-vector-icons/MaterialIcons";
 import { COLORS } from "../utils/constants";
 
-const VehicleCard = ({ vehicle, onPress }) => {
-  const scaleAnim = useRef(new Animated.Value(1)).current;
-
-  const handlePress = () => {
-    Animated.spring(scaleAnim, {
-      toValue: 0.95,
-      friction: 6,
-      tension: 40,
-      useNativeDriver: true,
-    }).start(() => {
-      scaleAnim.setValue(1);
-      onPress();
-    });
-  };
-
+const VehicleCard = ({ vehicle, onPress, animatedStyle }) => {
   return (
-    <TouchableOpacity onPress={handlePress}>
-      <Animated.View
-        style={[styles.card, { transform: [{ scale: scaleAnim }] }]}
-      >
-        <View style={styles.imageContainer}>
+    <Animated.View style={[styles.card, animatedStyle]}>
+      <TouchableOpacity activeOpacity={0.85} onPress={onPress}>
+        <LinearGradient
+          colors={[COLORS.cardGradientStart, COLORS.cardGradientEnd]}
+          style={styles.gradient}
+        >
           <Image
             source={
-              vehicle.image
-                ? { uri: vehicle.image }
+              vehicle.imageUrl
+                ? { uri: vehicle.imageUrl }
                 : require("../assets/images/placeholder.png")
             }
             style={styles.image}
+            resizeMode="cover"
           />
-          <LinearGradient
-            colors={["transparent", "rgba(0,0,0,0.6)"]}
-            style={styles.imageOverlay}
-          />
-          <Text style={styles.category}>{vehicle.category}</Text>
-        </View>
-        <View style={styles.content}>
-          <Text style={styles.title} numberOfLines={1}>
-            {vehicle.title}
-          </Text>
-          <Text style={styles.price}>{formatPrice(vehicle.price)}</Text>
-          <Text style={styles.location}>{vehicle.location}</Text>
-          <Text style={styles.details}>
-            {vehicle.year} • {vehicle.mileage} km
-          </Text>
-        </View>
-      </Animated.View>
-    </TouchableOpacity>
+          <View style={styles.infoContainer}>
+            <Text style={styles.title} numberOfLines={1}>
+              {vehicle.title || "Unknown Model"}
+            </Text>
+            <Text style={styles.yearPrice}>
+              <Text style={styles.year}>{vehicle.year || "Year N/A"}</Text> •{" "}
+              <Text style={styles.price}>
+                ${vehicle.price?.toLocaleString() || "0"}
+              </Text>
+            </Text>
+            <Text style={styles.location}>
+              {vehicle.location || "Location Unknown"}
+            </Text>
+            <View style={styles.stats}>
+              <View style={styles.statItem}>
+                <Icon name="speed" size={16} color={COLORS.accent} />
+                <Text style={styles.statText}>
+                  {vehicle.mileage ? `${vehicle.mileage} km` : "N/A"}
+                </Text>
+              </View>
+              <View style={styles.statItem}>
+                <Icon name="category" size={16} color={COLORS.accent} />
+                <Text style={styles.statText}>{vehicle.category || "N/A"}</Text>
+              </View>
+            </View>
+          </View>
+        </LinearGradient>
+      </TouchableOpacity>
+    </Animated.View>
   );
 };
 
 const styles = StyleSheet.create({
   card: {
-    flexDirection: "row",
-    backgroundColor: COLORS.inputBackground, // White
-    borderRadius: 10, // Smaller radius
-    marginBottom: 12, // Tighter spacing
-    borderWidth: 1,
-    borderColor: COLORS.border, // Light gray
-    shadowColor: COLORS.textSecondary,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 3,
+    marginBottom: 16,
+    borderRadius: 16,
     overflow: "hidden",
+    shadowColor: COLORS.accent,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 6,
   },
-  imageContainer: { position: "relative" },
+  gradient: {
+    flexDirection: "row",
+    padding: 16,
+    alignItems: "center",
+  },
   image: {
-    width: 120, // Smaller image
-    height: 100, // Compact height
-    borderTopLeftRadius: 10,
-    borderBottomLeftRadius: 10,
+    width: 100,
+    height: 70,
+    borderRadius: 12,
+    marginRight: 16,
+    backgroundColor: COLORS.dark,
   },
-  imageOverlay: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: "50%",
-    borderBottomLeftRadius: 10,
+  infoContainer: {
+    flex: 1,
   },
-  category: {
-    position: "absolute",
-    bottom: 6,
-    left: 6,
-    color: COLORS.inputBackground, // White
-    fontSize: 12, // Smaller font
-    fontWeight: "600",
-    fontFamily: "Roboto",
-    textShadowColor: "rgba(0, 0, 0, 0.4)",
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 2,
-  },
-  content: { flex: 1, padding: 10 }, // Reduced padding
   title: {
-    fontSize: 16, // Smaller
-    fontWeight: "600",
-    color: COLORS.textPrimary, // Dark gray
+    fontSize: 18,
+    fontWeight: "700",
+    color: COLORS.textPrimary,
     fontFamily: "Roboto",
-    marginBottom: 3,
+    marginBottom: 4,
+  },
+  yearPrice: {
+    fontSize: 14,
+    color: COLORS.textSecondary,
+    marginBottom: 6,
+  },
+  year: {
+    fontWeight: "600",
+    color: COLORS.accent,
   },
   price: {
-    fontSize: 14, // Smaller
-    color: COLORS.accent, // Teal
-    fontWeight: "600",
-    fontFamily: "Roboto",
-    marginBottom: 3,
+    fontWeight: "700",
+    color: COLORS.accent,
   },
   location: {
-    fontSize: 12, // Smaller
-    color: COLORS.textSecondary, // Medium gray
-    fontFamily: "Roboto",
-    marginBottom: 3,
-  },
-  details: {
-    fontSize: 11, // Smaller
+    fontSize: 13,
     color: COLORS.textSecondary,
-    fontFamily: "Roboto",
+    marginBottom: 8,
+    fontStyle: "italic",
+  },
+  stats: {
+    flexDirection: "row",
+    gap: 20,
+  },
+  statItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  statText: {
+    color: COLORS.accent,
+    fontWeight: "600",
+    fontSize: 13,
   },
 });
 
