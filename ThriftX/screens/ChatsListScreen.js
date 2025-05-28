@@ -11,6 +11,7 @@ import {
   StatusBar,
   Dimensions,
   Platform,
+  Image,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from "expo-linear-gradient";
@@ -69,9 +70,9 @@ const ChatsListScreen = ({ navigation }) => {
     conversations.forEach((_, index) => {
       if (!animationRefs.has(index)) {
         animationRefs.set(index, {
-          scale: new Animated.Value(0),
+          scale: new Animated.Value(0.8),
           opacity: new Animated.Value(0),
-          translateY: new Animated.Value(50),
+          translateY: new Animated.Value(20),
         });
       }
     });
@@ -79,22 +80,22 @@ const ChatsListScreen = ({ navigation }) => {
     const animations = conversations.map((_, index) => {
       const refs = animationRefs.get(index);
       return Animated.parallel([
-        Animated.timing(refs.scale, {
+        Animated.spring(refs.scale, {
           toValue: 1,
-          duration: 400,
-          delay: index * 80,
+          friction: 8,
+          tension: 50,
           useNativeDriver: true,
         }),
         Animated.timing(refs.opacity, {
           toValue: 1,
           duration: 400,
-          delay: index * 80,
+          delay: index * 100,
           useNativeDriver: true,
         }),
         Animated.timing(refs.translateY, {
           toValue: 0,
           duration: 400,
-          delay: index * 80,
+          delay: index * 100,
           useNativeDriver: true,
         }),
       ]);
@@ -185,7 +186,7 @@ const ChatsListScreen = ({ navigation }) => {
           useNativeDriver: true,
         }),
         Animated.timing(refs.opacity, {
-          toValue: 0.8,
+          toValue: 0.7,
           duration: 100,
           useNativeDriver: true,
         }),
@@ -227,6 +228,10 @@ const ChatsListScreen = ({ navigation }) => {
 
   const getInitials = (userId) => {
     return `U${userId?.toString().slice(-2) || "00"}`;
+  };
+
+  const isBase64Image = (content) => {
+    return content && content.startsWith("data:image/");
   };
 
   const renderItem = ({ item, index }) => {
@@ -277,24 +282,28 @@ const ChatsListScreen = ({ navigation }) => {
                   </Text>
                 </View>
 
-                <Text
-                  style={[
-                    styles.messageText,
-                    item.isUnread && styles.unreadMessageText,
-                  ]}
-                  numberOfLines={2}
-                >
-                  {item.content}
-                </Text>
+                {isBase64Image(item.content) ? (
+                  <Image
+                    source={{ uri: item.content }}
+                    style={styles.messageImage}
+                    resizeMode="cover"
+                  />
+                ) : (
+                  <Text
+                    style={[
+                      styles.messageText,
+                      item.isUnread && styles.unreadMessageText,
+                    ]}
+                    numberOfLines={2}
+                  >
+                    {item.content}
+                  </Text>
+                )}
               </View>
             </View>
 
             <View style={styles.rightSection}>
-              <Icon
-                name="chevron-right"
-                size={24}
-                color="rgba(255, 255, 255, 0.4)"
-              />
+              <Icon name="chevron-right" size={24} color={COLORS.accent} />
             </View>
           </View>
         </TouchableOpacity>
@@ -327,11 +336,7 @@ const ChatsListScreen = ({ navigation }) => {
         resizeMode="cover"
       >
         <LinearGradient
-          colors={[
-            COLORS.primary + "E6",
-            COLORS.secondary + "E6",
-            COLORS.primary + "F0",
-          ]}
+          colors={["#1C2526", "#2E3B3E", "#1C2526"]}
           style={styles.gradient}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
@@ -380,17 +385,13 @@ const ChatsListScreen = ({ navigation }) => {
                 <RefreshControl
                   refreshing={refreshing}
                   onRefresh={onRefresh}
-                  tintColor="#fff"
+                  tintColor={COLORS.accent}
                   colors={[COLORS.accent]}
                 />
               }
               ListEmptyComponent={() => (
                 <View style={styles.emptyContainer}>
-                  <Icon
-                    name="forum"
-                    size={64}
-                    color="rgba(255, 255, 255, 0.3)"
-                  />
+                  <Icon name="forum" size={64} color={COLORS.accent + "80"} />
                   <Text style={styles.emptyTitle}>No conversations yet</Text>
                   <Text style={styles.emptyText}>
                     Your messages will appear here once you start chatting
@@ -408,6 +409,7 @@ const ChatsListScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   backgroundImage: {
     flex: 1,
+    opacity: 0.6,
   },
   gradient: {
     flex: 1,
@@ -416,38 +418,39 @@ const styles = StyleSheet.create({
     paddingTop: Platform.OS === "ios" ? 60 : 40,
     paddingHorizontal: 24,
     paddingBottom: 20,
-    backgroundColor: "rgba(0, 0, 0, 0.3)",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   headerContent: {
     alignItems: "center",
   },
   headerTitle: {
-    fontSize: 32,
-    fontWeight: "800",
+    fontSize: 34,
+    fontWeight: "900",
     color: "#fff",
     textAlign: "center",
-    letterSpacing: 0.5,
+    letterSpacing: 1,
   },
   headerSubtitle: {
     fontSize: 16,
-    color: "rgba(255, 255, 255, 0.7)",
-    marginTop: 4,
-    fontWeight: "500",
+    color: "rgba(255, 255, 255, 0.8)",
+    marginTop: 6,
+    fontWeight: "600",
   },
   listWrapper: {
     flex: 1,
   },
   listContainer: {
-    padding: 20,
-    paddingBottom: 100,
+    padding: 16,
+    paddingBottom: 120,
   },
   conversationCard: {
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    borderRadius: 20,
-    marginVertical: 6,
+    backgroundColor: "#E5E7EB",
+    borderRadius: 16,
+    marginVertical: 8,
+    padding: 4,
   },
   touchableContent: {
-    padding: 18,
+    padding: 16,
   },
   conversationContent: {
     flexDirection: "row",
@@ -459,10 +462,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   avatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: COLORS.accent + "80",
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: "#2D3748",
     justifyContent: "center",
     alignItems: "center",
     marginRight: 16,
@@ -472,7 +475,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.accent,
   },
   avatarText: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: "700",
     color: "#fff",
     letterSpacing: 0.5,
@@ -481,9 +484,9 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 2,
     right: 2,
-    width: 12,
-    height: 12,
-    borderRadius: 6,
+    width: 14,
+    height: 14,
+    borderRadius: 7,
     backgroundColor: COLORS.accent,
   },
   messageInfo: {
@@ -493,31 +496,37 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 6,
+    marginBottom: 8,
   },
   userText: {
     fontSize: 18,
     fontWeight: "600",
-    color: "#fff",
+    color: "#1F2937",
     flex: 1,
   },
   unreadUserText: {
-    color: "#fff",
+    color: "#111827",
     fontWeight: "700",
   },
   messageText: {
     fontSize: 15,
-    color: "rgba(255, 255, 255, 0.85)",
-    lineHeight: 20,
+    color: "#4B5563",
+    lineHeight: 22,
     marginRight: 8,
   },
   unreadMessageText: {
-    color: "#fff",
-    fontWeight: "500",
+    color: "#111827",
+    fontWeight: "600",
+  },
+  messageImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 12,
+    marginRight: 8,
   },
   timeText: {
     fontSize: 13,
-    color: "rgba(255, 255, 255, 0.6)",
+    color: "#6B7280",
     fontWeight: "500",
     marginLeft: 8,
   },
@@ -543,7 +552,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: "rgba(255, 255, 255, 0.7)",
+    color: "rgba(255, 255, 255, 0.8)",
     textAlign: "center",
     lineHeight: 24,
   },
