@@ -81,27 +81,28 @@ public class VehicleAdService {
     }
     
     public Page<VehicleAdResponseDTO> searchAds(
-        String search, String category, String location,
-        Integer minPrice, Integer maxPrice, int page, int size) {
-        try {
-            search = (search == null || search.trim().isEmpty()) ? null : search.trim();
-            category = (category == null || category.trim().isEmpty()) ? null : category.trim();
-            location = (location == null || location.trim().isEmpty()) ? null : location.trim();
+    String search, String category, String location,
+    Integer minPrice, Integer maxPrice, int page, int size) {
 
-            Page<VehicleAd> vehicleAds = vehicleAdRepository.searchVehicles(
-                search, category, location, minPrice, maxPrice, PageRequest.of(page, size)
-            );
+    // Normalize parameters
+    search = (search == null || search.trim().isEmpty()) ? null : search.trim();
+    category = (category == null || category.trim().isEmpty()) ? null : category.trim();
+    location = (location == null || location.trim().isEmpty()) ? null : location.trim();
 
-           
-            return vehicleAds.map(vehicleAd -> {
-                if (vehicleAd.getUser() == null) {
-                    System.err.println("Warning: VehicleAd id " + vehicleAd.getId() + " has null user");
-                }
-                return new VehicleAdResponseDTO(vehicleAd);
-            });
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw e;
-        }
+    boolean noFilters = (search == null && category == null && location == null && minPrice == null && maxPrice == null);
+
+    Page<VehicleAd> vehicleAds;
+
+    if (noFilters) {
+        vehicleAds = vehicleAdRepository.findAll(PageRequest.of(page, size));
+    } else {
+        vehicleAds = vehicleAdRepository.searchVehicles(
+            search, category, location, minPrice, maxPrice, PageRequest.of(page, size)
+        );
     }
+
+    return vehicleAds.map(VehicleAdResponseDTO::new);
+}
+
+
 }
