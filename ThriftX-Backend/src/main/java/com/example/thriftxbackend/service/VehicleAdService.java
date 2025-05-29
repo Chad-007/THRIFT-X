@@ -84,7 +84,6 @@ public class VehicleAdService {
     String search, String category, String location,
     Integer minPrice, Integer maxPrice, int page, int size) {
 
-    // Normalize parameters
     search = (search == null || search.trim().isEmpty()) ? null : search.trim();
     category = (category == null || category.trim().isEmpty()) ? null : category.trim();
     location = (location == null || location.trim().isEmpty()) ? null : location.trim();

@@ -1,171 +1,380 @@
-import React, { useRef, useEffect } from "react";
+import React from "react";
 import {
   StyleSheet,
   View,
   Text,
   Image,
   ScrollView,
-  Animated,
-  Dimensions,
   TouchableOpacity,
+  SafeAreaView,
+  StatusBar,
+  Platform,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import { BlurView } from "expo-blur";
 import Icon from "react-native-vector-icons/MaterialIcons";
-import { COLORS } from "../utils/constants";
 
-const { width } = Dimensions.get("window");
+const COLORS = {
+  backgroundDark: "#1A1A2E",
+  surfaceDark: "#2C2C40",
+
+  accentPrimary: "#007BFF",
+  accentSecondary: "#6C757D",
+
+  textPrimary: "#E0E0E0",
+  textSecondary: "#B0B0B0",
+  textPlaceholder: "#707070",
+
+  white: "#FFFFFF",
+  black: "#000000",
+  error: "#DC3545",
+};
+
+const SPACING = {
+  xs: 4,
+  sm: 8,
+  md: 16,
+  lg: 24,
+  xl: 32,
+  xxl: 48,
+};
+
+const TYPOGRAPHY = {
+  h1: { fontSize: 30, fontWeight: "700", color: COLORS.textPrimary },
+  h2: { fontSize: 24, fontWeight: "600", color: COLORS.textPrimary },
+  h3: { fontSize: 20, fontWeight: "600", color: COLORS.textPrimary },
+  body: {
+    fontSize: 16,
+    fontWeight: "400",
+    color: COLORS.textSecondary,
+    lineHeight: 24,
+  },
+  caption: { fontSize: 14, fontWeight: "500", color: COLORS.textPlaceholder },
+  button: { fontSize: 18, fontWeight: "600", color: COLORS.white },
+};
+
+const BORDER_RADIUS = {
+  sm: 8,
+  md: 12,
+  lg: 20,
+  xl: 28,
+  full: 999,
+};
+
+const formatPrice = (price) => {
+  if (price === null || price === undefined) return "N/A";
+  return `$${price.toLocaleString("en-US")}`;
+};
 
 const VehicleDetailScreen = ({ route, navigation }) => {
   const { vehicle } = route.params;
-  const fadeAnim = useRef(new Animated.Value(0)).current;
 
-  useEffect(() => {
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 600,
-      useNativeDriver: true,
-    }).start();
-  }, []);
+  if (!vehicle) {
+    return (
+      <SafeAreaView style={styles.errorContainer}>
+        <Text style={styles.errorText}>Vehicle data not available.</Text>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backButtonOnError}
+        >
+          <Text style={styles.backButtonTextOnError}>Go Back</Text>
+        </TouchableOpacity>
+      </SafeAreaView>
+    );
+  }
+
+  const displayValue = (value, suffix = "") =>
+    value !== null && value !== undefined && value !== ""
+      ? `${value}${suffix}`
+      : "N/A";
 
   return (
-    <LinearGradient
-      colors={[COLORS.dark, COLORS.black]}
-      style={styles.container}
-    >
-      <Animated.ScrollView
-        style={{ opacity: fadeAnim }}
-        contentContainerStyle={{ paddingBottom: 40 }}
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor={COLORS.backgroundDark}
+      />
+      <LinearGradient
+        colors={
+          vehicle.gradientColors || [COLORS.backgroundDark, COLORS.surfaceDark]
+        }
+        style={styles.container}
       >
-        <Image
-          source={
-            vehicle.imageUrl
-              ? { uri: vehicle.imageUrl }
-              : require("../assets/images/placeholder.png")
-          }
-          style={styles.image}
-          resizeMode="cover"
-        />
-        <View style={styles.infoSection}>
-          <Text style={styles.title}>{vehicle.title || "Unknown Model"}</Text>
-          <Text style={styles.yearPrice}>
-            <Text style={styles.year}>{vehicle.year || "Year N/A"}</Text> •{" "}
-            <Text style={styles.price}>
-              ${vehicle.price?.toLocaleString() || "0"}
-            </Text>
-          </Text>
-          <Text style={styles.location}>
-            {vehicle.location || "Location Unknown"}
-          </Text>
-
-          <View style={styles.stats}>
-            <View style={styles.statItem}>
-              <Icon name="speed" size={22} color={COLORS.accent} />
-              <Text style={styles.statText}>
-                {vehicle.mileage ? `${vehicle.mileage} km` : "N/A"}
-              </Text>
-            </View>
-            <View style={styles.statItem}>
-              <Icon name="category" size={22} color={COLORS.accent} />
-              <Text style={styles.statText}>{vehicle.category || "N/A"}</Text>
-            </View>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.imageContainer}>
+            <Image
+              source={
+                vehicle.imageUrl
+                  ? { uri: vehicle.imageUrl }
+                  : require("../assets/images/placeholder.png")
+              }
+              style={styles.image}
+              resizeMode="cover"
+            />
+            <LinearGradient
+              colors={["transparent", "rgba(0,0,0,0.7)"]}
+              style={styles.imageOverlay}
+            />
+            <TouchableOpacity
+              style={styles.backButton}
+              onPress={() => navigation.goBack()}
+            >
+              <Icon
+                name="arrow-back-ios"
+                size={24}
+                color={COLORS.white}
+                style={{ marginLeft: SPACING.sm }}
+              />
+            </TouchableOpacity>
           </View>
 
-          <Text style={styles.sectionTitle}>Description</Text>
-          <Text style={styles.description}>
-            {vehicle.description || "No description available."}
-          </Text>
-        </View>
-      </Animated.ScrollView>
+          <BlurView
+            intensity={Platform.OS === "ios" ? 60 : 90}
+            tint="dark"
+            style={styles.contentCard}
+          >
+            <View style={styles.headerRow}>
+              <Text style={styles.title}>{displayValue(vehicle.title)}</Text>
+              <Text style={styles.price}>
+                {formatPrice(vehicle.price) || "N/A"}
+              </Text>
+            </View>
 
-      <TouchableOpacity
-        style={styles.backButton}
-        onPress={() => navigation.goBack()}
-        activeOpacity={0.7}
-      >
-        <Icon name="arrow-back-ios" size={28} color={COLORS.textPrimary} />
-      </TouchableOpacity>
-    </LinearGradient>
+            <View style={styles.detailsSection}>
+              <View style={styles.detailRow}>
+                <DetailItem
+                  icon="category"
+                  label="Category"
+                  value={displayValue(vehicle.category)}
+                />
+                <DetailItem
+                  icon="location-on"
+                  label="Location"
+                  value={displayValue(vehicle.location)}
+                />
+              </View>
+              <View style={styles.detailRow}>
+                <DetailItem
+                  icon="event"
+                  label="Year"
+                  value={displayValue(vehicle.year?.toString())}
+                />
+                <DetailItem
+                  icon="speed"
+                  label="Mileage"
+                  value={displayValue(vehicle.mileage, " km")}
+                />
+              </View>
+            </View>
+
+            <Text style={styles.sectionTitle}>Description</Text>
+            <Text style={styles.description}>
+              {displayValue(vehicle.description)}
+            </Text>
+
+            <TouchableOpacity
+              style={styles.messageButton}
+              onPress={() =>
+                navigation.navigate("Chatt", {
+                  sellerId: vehicle.user || vehicle.userId,
+                  adId: vehicle.id,
+                  vehicleTitle: vehicle.title,
+                  vehicleImage: vehicle.imageUrl,
+                })
+              }
+            >
+              <LinearGradient
+                colors={[COLORS.accentPrimary, COLORS.accentSecondary]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.messageButtonGradient}
+              >
+                <Icon name="chat-bubble" size={22} color={COLORS.white} />
+                <Text style={styles.messageButtonText}>Message Seller</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </BlurView>
+        </ScrollView>
+      </LinearGradient>
+    </SafeAreaView>
   );
 };
 
+const DetailItem = ({ icon, label, value }) => (
+  <View style={styles.detailItemContainer}>
+    <Icon
+      name={icon}
+      size={20}
+      color={COLORS.accentSecondary}
+      style={styles.detailIcon}
+    />
+    <View>
+      <Text style={styles.detailLabel}>{label}</Text>
+      <Text style={styles.detailValue}>{value}</Text>
+    </View>
+  </View>
+);
+
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: COLORS.backgroundDark,
+  },
   container: {
     flex: 1,
   },
+  scrollContent: {
+    paddingBottom: SPACING.xxl + SPACING.lg,
+  },
+  imageContainer: {
+    width: "100%",
+    height: 380,
+    backgroundColor: COLORS.surfaceDark,
+  },
   image: {
-    width,
-    height: width * 0.6,
-    borderBottomLeftRadius: 30,
-    borderBottomRightRadius: 30,
-    backgroundColor: COLORS.dark,
+    width: "100%",
+    height: "100%",
   },
-  infoSection: {
-    padding: 24,
-  },
-  title: {
-    fontSize: 26,
-    fontWeight: "800",
-    color: COLORS.accent,
-    fontFamily: "Roboto",
-    marginBottom: 8,
-  },
-  yearPrice: {
-    fontSize: 16,
-    color: COLORS.textSecondary,
-    marginBottom: 6,
-  },
-  year: {
-    fontWeight: "700",
-    color: COLORS.accent,
-  },
-  price: {
-    fontWeight: "800",
-    color: COLORS.accent,
-  },
-  location: {
-    fontSize: 15,
-    fontStyle: "italic",
-    color: COLORS.textSecondary,
-    marginBottom: 16,
-  },
-  stats: {
-    flexDirection: "row",
-    gap: 30,
-    marginBottom: 24,
-  },
-  statItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  statText: {
-    color: COLORS.accent,
-    fontWeight: "700",
-    fontSize: 15,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: COLORS.accent,
-    marginBottom: 8,
-  },
-  description: {
-    fontSize: 16,
-    color: COLORS.textPrimary,
-    lineHeight: 24,
+  imageOverlay: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: 200,
   },
   backButton: {
     position: "absolute",
-    top: 50,
-    left: 16,
-    backgroundColor: COLORS.cardBackground,
-    padding: 10,
-    borderRadius: 30,
-    shadowColor: COLORS.accent,
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
+    top:
+      Platform.OS === "android"
+        ? StatusBar.currentHeight + SPACING.md
+        : SPACING.xl,
+    left: SPACING.md,
+    backgroundColor: "rgba(30, 30, 30, 0.6)",
+    padding: SPACING.sm,
+    borderRadius: BORDER_RADIUS.full,
+    zIndex: 10,
+    shadowColor: COLORS.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.5,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  contentCard: {
+    marginHorizontal: SPACING.md,
+    marginTop: -SPACING.xxl - SPACING.md,
+    borderRadius: BORDER_RADIUS.xl,
+    padding: SPACING.lg,
+    overflow: "hidden",
+    shadowColor: COLORS.black,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.4,
+    shadowRadius: 15,
     elevation: 10,
+  },
+  headerRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    marginBottom: SPACING.lg,
+  },
+  title: {
+    ...TYPOGRAPHY.h1,
+    flex: 1,
+    marginRight: SPACING.md,
+    lineHeight: 38,
+  },
+  price: {
+    ...TYPOGRAPHY.h2,
+    color: COLORS.accentPrimary,
+    fontWeight: "bold",
+  },
+  detailsSection: {
+    marginBottom: SPACING.lg,
+    paddingVertical: SPACING.sm,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderColor: COLORS.surfaceDark,
+  },
+  detailRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: SPACING.md,
+  },
+  detailItemContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+    maxWidth: "48%",
+  },
+  detailIcon: {
+    marginRight: SPACING.sm,
+  },
+  detailLabel: {
+    ...TYPOGRAPHY.caption,
+    color: COLORS.textPlaceholder,
+    fontSize: 13,
+    marginBottom: SPACING.xs / 2,
+  },
+  detailValue: {
+    ...TYPOGRAPHY.body,
+    fontWeight: "600",
+    color: COLORS.textPrimary,
+    fontSize: 15,
+  },
+  sectionTitle: {
+    ...TYPOGRAPHY.h3,
+    fontSize: 18,
+    marginBottom: SPACING.sm,
+    color: COLORS.textPrimary,
+    marginTop: SPACING.md,
+  },
+  description: {
+    ...TYPOGRAPHY.body,
+    marginBottom: SPACING.xl,
+  },
+  messageButton: {
+    borderRadius: BORDER_RADIUS.md,
+    overflow: "hidden",
+    shadowColor: COLORS.accentPrimary,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  messageButtonGradient: {
+    flexDirection: "row",
+    paddingVertical: SPACING.md,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  messageButtonText: {
+    ...TYPOGRAPHY.button,
+    marginLeft: SPACING.sm,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: SPACING.lg,
+    backgroundColor: COLORS.backgroundDark,
+  },
+  errorText: {
+    ...TYPOGRAPHY.h3,
+    color: COLORS.textPrimary,
+    textAlign: "center",
+    marginBottom: SPACING.lg,
+  },
+  backButtonOnError: {
+    backgroundColor: COLORS.accentPrimary,
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.lg,
+    borderRadius: BORDER_RADIUS.md,
+  },
+  backButtonTextOnError: {
+    ...TYPOGRAPHY.button,
   },
 });
 

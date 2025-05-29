@@ -170,7 +170,7 @@ const LoginScreen = ({ navigation }) => {
           >
             <Button
               title="Log In"
-              onPress={handleLogin} // Updated to use handleLogin function
+              onPress={handleLogin}
               style={styles.button}
             />
             <Link onPress={() => navigation.navigate("Signup")}>
