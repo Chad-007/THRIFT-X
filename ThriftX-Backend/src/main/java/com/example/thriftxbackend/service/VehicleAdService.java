@@ -1,6 +1,7 @@
 package com.example.thriftxbackend.service;
 
 import java.util.Base64;
+import java.util.stream.Collectors;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Paths;
@@ -14,7 +15,7 @@ import com.example.thriftxbackend.entity.User;
 import com.example.thriftxbackend.entity.VehicleAd;
 import com.example.thriftxbackend.repository.UserRepository;
 import com.example.thriftxbackend.repository.VehicleAdRepository;
-
+import java.util.List;
 import org.springframework.data.domain.Page;
 
 @Service
@@ -102,6 +103,11 @@ public class VehicleAdService {
 
     return vehicleAds.map(VehicleAdResponseDTO::new);
 }
-
+public List<VehicleAdResponseDTO> getAdsByUserId(Long user_id) {
+    return vehicleAdRepository.findByUserId(user_id)
+            .stream()
+            .map(VehicleAdResponseDTO::new)
+            .collect(Collectors.toList());
+}
 
 }

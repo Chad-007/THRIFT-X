@@ -15,6 +15,7 @@ public interface VehicleAdRepository extends JpaRepository<VehicleAd, Long> {
     List<VehicleAd> findByLocation(String location);
     List<VehicleAd> findByYear(String year);
     List<VehicleAd> findByMileage(String mileage);
+    List<VehicleAd> findByUserId(Long user_id);
     @Query("SELECT v FROM VehicleAd v WHERE " +
        "(:search IS NULL OR " +
        "LOWER(v.title) LIKE LOWER(CONCAT('%', :search, '%')) OR " +

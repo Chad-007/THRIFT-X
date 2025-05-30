@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.data.domain.Page;
-
+import java.util.List;
 @RestController
 @RequestMapping("/api")
 @CrossOrigin(origins = "*")
@@ -41,4 +41,10 @@ public class VehicleAdController {
             @RequestParam(defaultValue = "10") int size) {
         return vehicleAdService.searchAds(search, category, location, minPrice, maxPrice, page, size);
     }
+    @GetMapping("/ads/user")
+    public List<VehicleAdResponseDTO> findUserbyId(@RequestParam Long user_id) {
+        return vehicleAdService.getAdsByUserId(user_id);
+    }
+    
+
 }

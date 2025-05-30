@@ -236,9 +236,6 @@ const ChatScreen = ({ route, navigation }) => {
         ]}
       >
         <Text style={styles.messageText}>{item.content}</Text>
-        <Text style={styles.messageTime}>
-          {new Date(item.timestamp || item.createdAt).toLocaleTimeString()}
-        </Text>
       </Animated.View>
     );
   };

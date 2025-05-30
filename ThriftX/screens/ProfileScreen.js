@@ -17,14 +17,11 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 const COLORS = {
   backgroundDark: "#1A1A2E",
   surfaceDark: "#2C2C40",
-
   accentPrimary: "#4A90E2",
   accentSecondary: "#A0A0A0",
-
   textPrimary: "#F0F0F0",
   textSecondary: "#C0C0C0",
   textPlaceholder: "#888888",
-
   white: "#FFFFFF",
   black: "#000000",
   error: "#E74C3C",
@@ -116,71 +113,34 @@ const DESIGN_TOKENS = {
   },
 };
 
-const mockUser = { displayName: "User Profile" };
-const mockListings = [
-  {
-    id: "1",
-    title: "Toyota Camry 2022",
-    price: 25000,
-    location: "New York, NY",
-    imageUrl:
-      "https://images.unsplash.com/photo-1580273916550-ebdde42186d7?auto=format&fit=crop&w=800&q=80",
-    category: "Car",
-    year: 2022,
-    mileage: 15000,
-  },
-  {
-    id: "2",
-    title: "Honda CB500F",
-    price: 6500,
-    location: "Los Angeles, CA",
-    imageUrl:
-      "https://images.unsplash.com/photo-1558981403-c5f9899a7ef7?auto=format&fit=crop&w=800&q=80",
-    category: "Bike",
-    year: 2020,
-    mileage: 8000,
-  },
-  {
-    id: "3",
-    title: "Ford F-150 2019",
-    price: 32000,
-    location: "Houston, TX",
-    imageUrl:
-      "https://images.unsplash.com/photo-1593361870631-0731f4a4f8b9?auto=format&fit=crop&w=800&q=80",
-    category: "Truck",
-    year: 2019,
-    mileage: 45000,
-  },
-  {
-    id: "4",
-    title: "Tesla Model 3 2023",
-    price: 48000,
-    location: "San Francisco, CA",
-    imageUrl:
-      "https://images.unsplash.com/photo-1617469730596-f9e4f4d2f8e9?auto=format&fit=crop&w=800&q=80",
-    category: "EV",
-    year: 2023,
-    mileage: 5000,
-  },
-];
-
 const ProfileScreen = ({ navigation }) => {
-  const [user, setUser] = useState(mockUser);
-  const [listings] = useState(mockListings);
+  const [user, setUser] = useState({ displayName: "User Profile" });
+  const [listings, setListings] = useState([]);
   const logoutButtonScale = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
-    const loadUsername = async () => {
+    const loadUserData = async () => {
       try {
         const savedUsername = await AsyncStorage.getItem("username");
+        const savedUserID = await AsyncStorage.getItem("userID");
+
         if (savedUsername) {
           setUser((prev) => ({ ...prev, displayName: savedUsername }));
         }
+
+        if (savedUserID) {
+          const response = await fetch(
+            `http://192.168.153.122:8082/api/ads/user?user_id=${savedUserID}`
+          );
+          const data = await response.json();
+          setListings(data);
+        }
       } catch (error) {
-        console.error("Failed to load username from AsyncStorage:", error);
+        console.error("Failed to load user data or listings:", error);
       }
     };
-    loadUsername();
+
+    loadUserData();
   }, []);
 
   const handleLogout = () => {
@@ -225,7 +185,8 @@ const ProfileScreen = ({ navigation }) => {
 
         <FlatList
           data={listings}
-          keyExtractor={(item) => item.id}
+          numColumns={2}
+          keyExtractor={(item) => item.id.toString()}
           renderItem={({ item }) => (
             <VehicleCard
               vehicle={item}
@@ -254,13 +215,8 @@ const ProfileScreen = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: COLORS.backgroundDark,
-  },
-  container: {
-    flex: 1,
-  },
+  safeArea: { flex: 1, backgroundColor: COLORS.backgroundDark },
+  container: { flex: 1 },
   header: {
     padding: DESIGN_TOKENS.spacing.lg,
     flexDirection: "row",
@@ -275,13 +231,11 @@ const styles = StyleSheet.create({
   },
   title: {
     ...DESIGN_TOKENS.typography.h2,
-    color: COLORS.textPrimary,
     fontFamily: Platform.OS === "ios" ? "System" : "Roboto",
     letterSpacing: 0.5,
   },
   subtitle: {
     ...DESIGN_TOKENS.typography.h3,
-    color: COLORS.textPrimary,
     padding: DESIGN_TOKENS.spacing.lg,
     fontFamily: Platform.OS === "ios" ? "System" : "Roboto",
     marginTop: DESIGN_TOKENS.spacing.md,
@@ -300,7 +254,6 @@ const styles = StyleSheet.create({
   logoutButtonText: {
     ...DESIGN_TOKENS.typography.button,
     fontSize: 14,
-    color: COLORS.white,
     fontFamily: Platform.OS === "ios" ? "System" : "Roboto",
   },
   emptyContainer: {
@@ -311,7 +264,6 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     ...DESIGN_TOKENS.typography.body,
-    color: COLORS.textSecondary,
     marginBottom: DESIGN_TOKENS.spacing.lg,
   },
   postAdButton: {
@@ -323,7 +275,6 @@ const styles = StyleSheet.create({
   },
   postAdButtonText: {
     ...DESIGN_TOKENS.typography.button,
-    color: COLORS.white,
   },
 });
 

@@ -12,112 +12,28 @@ import {
   Platform,
   SafeAreaView,
   StatusBar,
+  Dimensions,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import * as ImagePicker from "expo-image-picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Icon from "react-native-vector-icons/MaterialIcons";
 
-const COLORS = {
-  backgroundDark: "#1A1A2E",
-  surfaceDark: "#2C2C40",
+const { width } = Dimensions.get("window");
 
-  accentPrimary: "#4A90E2",
-  accentSecondary: "#A0A0A0",
-
-  textPrimary: "#F0F0F0",
-  textSecondary: "#C0C0C0",
-  textPlaceholder: "#888888",
-
-  white: "#FFFFFF",
+// Spotify-inspired colors
+const SPOTIFY_COLORS = {
   black: "#000000",
-  error: "#E74C3C",
-};
-
-const SPACING = {
-  xs: 4,
-  sm: 8,
-  md: 16,
-  lg: 24,
-  xl: 32,
-  xxl: 48,
-};
-
-const BORDER_RADIUS = {
-  sm: 8,
-  md: 12,
-  lg: 16,
-  xl: 24,
-  full: 9999,
-};
-
-const TYPOGRAPHY = {
-  h1: {
-    fontSize: 32,
-    fontWeight: "800",
-    lineHeight: 40,
-    color: COLORS.textPrimary,
-  },
-  h2: {
-    fontSize: 24,
-    fontWeight: "700",
-    lineHeight: 32,
-    color: COLORS.textPrimary,
-  },
-  h3: {
-    fontSize: 20,
-    fontWeight: "600",
-    lineHeight: 28,
-    color: COLORS.textPrimary,
-  },
-  body: {
-    fontSize: 16,
-    fontWeight: "400",
-    lineHeight: 24,
-    color: COLORS.textSecondary,
-  },
-  caption: {
-    fontSize: 14,
-    fontWeight: "500",
-    lineHeight: 20,
-    color: COLORS.textPlaceholder,
-  },
-  small: {
-    fontSize: 12,
-    fontWeight: "400",
-    lineHeight: 16,
-    color: COLORS.textSecondary,
-  },
-  button: { fontSize: 18, fontWeight: "600", color: COLORS.white },
-};
-
-const DESIGN_TOKENS = {
-  spacing: SPACING,
-  borderRadius: BORDER_RADIUS,
-  typography: TYPOGRAPHY,
-  shadows: {
-    sm: {
-      shadowColor: COLORS.black,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 4,
-      elevation: 2,
-    },
-    md: {
-      shadowColor: COLORS.black,
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.15,
-      shadowRadius: 8,
-      elevation: 4,
-    },
-    lg: {
-      shadowColor: COLORS.black,
-      shadowOffset: { width: 0, height: 8 },
-      shadowOpacity: 0.2,
-      shadowRadius: 16,
-      elevation: 8,
-    },
-  },
+  darkGray: "#121212",
+  mediumGray: "#1e1e1e",
+  lightGray: "#282828",
+  green: "#1db954",
+  accent: "#1ed760",
+  white: "#ffffff",
+  lightText: "#b3b3b3",
+  darkText: "#a7a7a7",
+  error: "#e22134",
+  overlay: "rgba(0, 0, 0, 0.8)",
 };
 
 const PostAdScreen = ({ navigation }) => {
@@ -133,8 +49,25 @@ const PostAdScreen = ({ navigation }) => {
     image: null,
   });
 
+  const [focusedInput, setFocusedInput] = useState(null);
+
+  // Animation refs
+  const fadeInAnimation = useRef(new Animated.Value(0)).current;
+  const slideUpAnimation = useRef(new Animated.Value(50)).current;
   const imageButtonScale = useRef(new Animated.Value(1)).current;
   const submitButtonScale = useRef(new Animated.Value(1)).current;
+  const headerAnimation = useRef(new Animated.Value(0)).current;
+
+  // Input focus animations
+  const inputAnimations = useRef({
+    title: new Animated.Value(0),
+    price: new Animated.Value(0),
+    category: new Animated.Value(0),
+    location: new Animated.Value(0),
+    year: new Animated.Value(0),
+    mileage: new Animated.Value(0),
+    description: new Animated.Value(0),
+  }).current;
 
   useEffect(() => {
     const loadUsername = async () => {
@@ -148,7 +81,46 @@ const PostAdScreen = ({ navigation }) => {
       }
     };
     loadUsername();
+
+    // Initial animations
+    Animated.parallel([
+      Animated.timing(fadeInAnimation, {
+        toValue: 1,
+        duration: 800,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideUpAnimation, {
+        toValue: 0,
+        duration: 600,
+        delay: 200,
+        useNativeDriver: true,
+      }),
+      Animated.timing(headerAnimation, {
+        toValue: 1,
+        duration: 1000,
+        delay: 100,
+        useNativeDriver: true,
+      }),
+    ]).start();
   }, []);
+
+  const handleInputFocus = (inputName) => {
+    setFocusedInput(inputName);
+    Animated.timing(inputAnimations[inputName], {
+      toValue: 1,
+      duration: 200,
+      useNativeDriver: false,
+    }).start();
+  };
+
+  const handleInputBlur = (inputName) => {
+    setFocusedInput(null);
+    Animated.timing(inputAnimations[inputName], {
+      toValue: 0,
+      duration: 200,
+      useNativeDriver: false,
+    }).start();
+  };
 
   const requestPermission = async () => {
     if (Platform.OS !== "web") {
@@ -157,7 +129,8 @@ const PostAdScreen = ({ navigation }) => {
       if (status !== "granted") {
         Alert.alert(
           "Permission Denied",
-          "Sorry, we need camera roll permissions to make this work!"
+          "We need camera roll permissions to upload images.",
+          [{ text: "OK", style: "default" }]
         );
         return false;
       }
@@ -169,211 +142,415 @@ const PostAdScreen = ({ navigation }) => {
     const hasPermission = await requestPermission();
     if (!hasPermission) return;
 
-    Animated.spring(imageButtonScale, {
-      toValue: 0.95,
-      friction: 6,
-      tension: 40,
-      useNativeDriver: true,
-    }).start(async () => {
-      imageButtonScale.setValue(1);
-      try {
-        const result = await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ImagePicker.MediaTypeOptions.Images,
-          allowsEditing: true,
-          aspect: [4, 3],
-          quality: 1,
-          base64: true,
-        });
+    // Button press animation
+    Animated.sequence([
+      Animated.timing(imageButtonScale, {
+        toValue: 0.95,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+      Animated.timing(imageButtonScale, {
+        toValue: 1,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+    ]).start();
 
-        if (!result.canceled && result.assets && result.assets.length > 0) {
-          const base64Image = `data:image/jpeg;base64,${result.assets[0].base64}`;
-          setForm({
-            ...form,
-            image: base64Image,
-          });
-        } else {
-          console.log("User cancelled image picker");
-        }
-      } catch (error) {
-        console.error("ImagePicker Error: ", error);
-        Alert.alert("Error", "Failed to pick image.");
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [16, 9],
+        quality: 0.8,
+        base64: true,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const base64Image = `data:image/jpeg;base64,${result.assets[0].base64}`;
+        setForm({ ...form, image: base64Image });
       }
-    });
+    } catch (error) {
+      console.error("ImagePicker Error: ", error);
+      Alert.alert("Error", "Failed to pick image. Please try again.");
+    }
   };
 
   const handleSubmit = async () => {
-    Animated.spring(submitButtonScale, {
-      toValue: 0.95,
-      friction: 6,
-      tension: 40,
-      useNativeDriver: true,
-    }).start(async () => {
-      submitButtonScale.setValue(1);
+    // Button press animation
+    Animated.sequence([
+      Animated.timing(submitButtonScale, {
+        toValue: 0.95,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+      Animated.timing(submitButtonScale, {
+        toValue: 1,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+    ]).start();
 
-      if (
-        !form.username ||
-        !form.title ||
-        !form.price ||
-        !form.category ||
-        !form.location ||
-        !form.year ||
-        !form.mileage ||
-        !form.description ||
+    // Validation
+    const requiredFields = [
+      "title",
+      "price",
+      "category",
+      "location",
+      "year",
+      "mileage",
+      "description",
+    ];
+    const missingFields = requiredFields.filter((field) => !form[field].trim());
+
+    if (missingFields.length > 0 || !form.image) {
+      Alert.alert(
+        "Missing Information",
         !form.image
-      ) {
-        Alert.alert(
-          "Missing Information",
-          "Please fill in all fields and upload an image."
-        );
-        return;
-      }
+          ? "Please upload an image for your ad."
+          : "Please fill in all required fields.",
+        [{ text: "OK", style: "default" }]
+      );
+      return;
+    }
 
-      const payload = {
-        username: form.username,
-        title: form.title,
-        price: parseFloat(form.price),
-        category: form.category,
-        location: form.location,
-        year: parseInt(form.year),
-        mileage: parseInt(form.mileage),
-        description: form.description,
-        imageUrl: form.image,
-      };
+    const payload = {
+      username: form.username,
+      title: form.title.trim(),
+      price: parseFloat(form.price),
+      category: form.category.trim(),
+      location: form.location.trim(),
+      year: parseInt(form.year),
+      mileage: parseInt(form.mileage),
+      description: form.description.trim(),
+      imageUrl: form.image,
+    };
 
-      try {
-        const res = await fetch("http://192.168.153.122:8082/api/ads/post", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
+    try {
+      const res = await fetch("http://192.168.153.122:8082/api/ads/post", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (res.ok) {
+        Alert.alert("Success!", "Your ad has been posted successfully.", [
+          {
+            text: "OK",
+            onPress: () => {
+              navigation.navigate("Home");
+              // Reset form but keep username
+              setForm({
+                username: form.username,
+                title: "",
+                price: "",
+                category: "",
+                location: "",
+                year: "",
+                mileage: "",
+                description: "",
+                image: null,
+              });
+            },
           },
-          body: JSON.stringify(payload),
-        });
-
-        if (res.ok) {
-          Alert.alert("Success", "Ad posted successfully!");
-          navigation.navigate("Home");
-          setForm({
-            username: form.username,
-            title: "",
-            price: "",
-            category: "",
-            location: "",
-            year: "",
-            mileage: "",
-            description: "",
-            image: null,
-          });
-        } else {
-          const errorText = await res.text();
-          Alert.alert("Error", errorText || "Something went wrong.");
-        }
-      } catch (err) {
-        console.error("Network Error:", err);
+        ]);
+      } else {
+        const errorText = await res.text();
         Alert.alert(
-          "Network Error",
-          "Could not post ad. Please check your connection."
+          "Error",
+          errorText || "Something went wrong. Please try again."
         );
       }
+    } catch (err) {
+      console.error("Network Error:", err);
+      Alert.alert(
+        "Network Error",
+        "Could not post ad. Please check your internet connection."
+      );
+    }
+  };
+
+  const getInputStyle = (inputName) => {
+    const borderColor = inputAnimations[inputName].interpolate({
+      inputRange: [0, 1],
+      outputRange: [SPOTIFY_COLORS.lightGray, SPOTIFY_COLORS.green],
     });
+
+    return [
+      styles.input,
+      {
+        borderColor,
+        backgroundColor:
+          focusedInput === inputName
+            ? SPOTIFY_COLORS.mediumGray
+            : SPOTIFY_COLORS.lightGray,
+      },
+    ];
   };
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar
         barStyle="light-content"
-        backgroundColor={COLORS.backgroundDark}
+        backgroundColor={SPOTIFY_COLORS.black}
+        translucent={false}
       />
-      <LinearGradient
-        colors={[COLORS.backgroundDark, COLORS.black, "#0a0a0a"]}
-        style={styles.container}
-      >
-        <ScrollView contentContainerStyle={styles.content}>
-          <Text style={styles.title}>Post a Vehicle Ad</Text>
 
-          <TextInput
-            style={styles.input}
-            placeholder="Title (e.g., Toyota Camry 2022)"
-            placeholderTextColor={COLORS.textPlaceholder}
-            value={form.title}
-            onChangeText={(text) => setForm({ ...form, title: text })}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Price (USD)"
-            placeholderTextColor={COLORS.textPlaceholder}
-            value={form.price}
-            onChangeText={(text) => setForm({ ...form, price: text })}
-            keyboardType="numeric"
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Category (e.g., Car, Bike)"
-            placeholderTextColor={COLORS.textPlaceholder}
-            value={form.category}
-            onChangeText={(text) => setForm({ ...form, category: text })}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Location (e.g., New York, NY)"
-            placeholderTextColor={COLORS.textPlaceholder}
-            value={form.location}
-            onChangeText={(text) => setForm({ ...form, location: text })}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Year (e.g., 2022)"
-            placeholderTextColor={COLORS.textPlaceholder}
-            value={form.year}
-            onChangeText={(text) => setForm({ ...form, year: text })}
-            keyboardType="numeric"
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Mileage (km)"
-            placeholderTextColor={COLORS.textPlaceholder}
-            value={form.mileage}
-            onChangeText={(text) => setForm({ ...form, mileage: text })}
-            keyboardType="numeric"
-          />
-          <TextInput
-            style={[styles.input, styles.descriptionInput]}
-            placeholder="Description"
-            placeholderTextColor={COLORS.textPlaceholder}
-            value={form.description}
-            onChangeText={(text) => setForm({ ...form, description: text })}
-            multiline
-            numberOfLines={4}
-          />
+      <View style={styles.container}>
+        <LinearGradient
+          colors={[SPOTIFY_COLORS.black, SPOTIFY_COLORS.darkGray]}
+          style={styles.gradient}
+        >
+          {/* Header */}
+          <Animated.View
+            style={[
+              styles.header,
+              {
+                opacity: headerAnimation,
+                transform: [
+                  {
+                    translateY: headerAnimation.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [-30, 0],
+                    }),
+                  },
+                ],
+              },
+            ]}
+          >
+            <TouchableOpacity
+              onPress={() => navigation.goBack()}
+              style={styles.backButton}
+            >
+              <Icon name="arrow-back" size={24} color={SPOTIFY_COLORS.white} />
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>Post Vehicle Ad</Text>
+            <View style={styles.placeholder} />
+          </Animated.View>
 
-          <TouchableOpacity onPress={handleImagePick} activeOpacity={0.8}>
+          <ScrollView
+            contentContainerStyle={styles.content}
+            showsVerticalScrollIndicator={false}
+          >
             <Animated.View
               style={[
-                styles.imageButton,
-                { transform: [{ scale: imageButtonScale }] },
+                styles.form,
+                {
+                  opacity: fadeInAnimation,
+                  transform: [{ translateY: slideUpAnimation }],
+                },
               ]}
             >
-              <Icon name="cloud-upload" size={24} color={COLORS.white} />
-              <Text style={styles.imageButtonText}>
-                {form.image ? "Image Selected" : "Upload Image"}
-              </Text>
-            </Animated.View>
-          </TouchableOpacity>
-          {form.image && (
-            <Image source={{ uri: form.image }} style={styles.previewImage} />
-          )}
+              {/* Form Fields */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Vehicle Title</Text>
+                <Animated.View style={getInputStyle("title")}>
+                  <TextInput
+                    style={styles.textInput}
+                    placeholder="e.g., Toyota Camry 2022"
+                    placeholderTextColor={SPOTIFY_COLORS.darkText}
+                    value={form.title}
+                    onChangeText={(text) => setForm({ ...form, title: text })}
+                    onFocus={() => handleInputFocus("title")}
+                    onBlur={() => handleInputBlur("title")}
+                  />
+                </Animated.View>
+              </View>
 
-          <TouchableOpacity onPress={handleSubmit} activeOpacity={0.8}>
-            <Animated.View
-              style={[
-                styles.submitButton,
-                { transform: [{ scale: submitButtonScale }] },
-              ]}
-            >
-              <Text style={styles.submitButtonText}>Post Ad</Text>
+              <View style={styles.row}>
+                <View style={[styles.inputGroup, styles.halfWidth]}>
+                  <Text style={styles.label}>Price (USD)</Text>
+                  <Animated.View style={getInputStyle("price")}>
+                    <TextInput
+                      style={styles.textInput}
+                      placeholder="25000"
+                      placeholderTextColor={SPOTIFY_COLORS.darkText}
+                      value={form.price}
+                      onChangeText={(text) => setForm({ ...form, price: text })}
+                      keyboardType="numeric"
+                      onFocus={() => handleInputFocus("price")}
+                      onBlur={() => handleInputBlur("price")}
+                    />
+                  </Animated.View>
+                </View>
+
+                <View style={[styles.inputGroup, styles.halfWidth]}>
+                  <Text style={styles.label}>Year</Text>
+                  <Animated.View style={getInputStyle("year")}>
+                    <TextInput
+                      style={styles.textInput}
+                      placeholder="2022"
+                      placeholderTextColor={SPOTIFY_COLORS.darkText}
+                      value={form.year}
+                      onChangeText={(text) => setForm({ ...form, year: text })}
+                      keyboardType="numeric"
+                      onFocus={() => handleInputFocus("year")}
+                      onBlur={() => handleInputBlur("year")}
+                    />
+                  </Animated.View>
+                </View>
+              </View>
+
+              <View style={styles.row}>
+                <View style={[styles.inputGroup, styles.halfWidth]}>
+                  <Text style={styles.label}>Category</Text>
+                  <Animated.View style={getInputStyle("category")}>
+                    <TextInput
+                      style={styles.textInput}
+                      placeholder="Car, Bike, SUV"
+                      placeholderTextColor={SPOTIFY_COLORS.darkText}
+                      value={form.category}
+                      onChangeText={(text) =>
+                        setForm({ ...form, category: text })
+                      }
+                      onFocus={() => handleInputFocus("category")}
+                      onBlur={() => handleInputBlur("category")}
+                    />
+                  </Animated.View>
+                </View>
+
+                <View style={[styles.inputGroup, styles.halfWidth]}>
+                  <Text style={styles.label}>Mileage (km)</Text>
+                  <Animated.View style={getInputStyle("mileage")}>
+                    <TextInput
+                      style={styles.textInput}
+                      placeholder="50000"
+                      placeholderTextColor={SPOTIFY_COLORS.darkText}
+                      value={form.mileage}
+                      onChangeText={(text) =>
+                        setForm({ ...form, mileage: text })
+                      }
+                      keyboardType="numeric"
+                      onFocus={() => handleInputFocus("mileage")}
+                      onBlur={() => handleInputBlur("mileage")}
+                    />
+                  </Animated.View>
+                </View>
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Location</Text>
+                <Animated.View style={getInputStyle("location")}>
+                  <TextInput
+                    style={styles.textInput}
+                    placeholder="New York, NY"
+                    placeholderTextColor={SPOTIFY_COLORS.darkText}
+                    value={form.location}
+                    onChangeText={(text) =>
+                      setForm({ ...form, location: text })
+                    }
+                    onFocus={() => handleInputFocus("location")}
+                    onBlur={() => handleInputBlur("location")}
+                  />
+                </Animated.View>
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Description</Text>
+                <Animated.View
+                  style={[
+                    getInputStyle("description"),
+                    styles.descriptionContainer,
+                  ]}
+                >
+                  <TextInput
+                    style={[styles.textInput, styles.descriptionInput]}
+                    placeholder="Describe your vehicle's condition, features, and any additional details..."
+                    placeholderTextColor={SPOTIFY_COLORS.darkText}
+                    value={form.description}
+                    onChangeText={(text) =>
+                      setForm({ ...form, description: text })
+                    }
+                    multiline
+                    numberOfLines={4}
+                    textAlignVertical="top"
+                    onFocus={() => handleInputFocus("description")}
+                    onBlur={() => handleInputBlur("description")}
+                  />
+                </Animated.View>
+              </View>
+
+              {/* Image Upload */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Vehicle Image</Text>
+                <TouchableOpacity onPress={handleImagePick} activeOpacity={0.8}>
+                  <Animated.View
+                    style={[
+                      styles.imageButton,
+                      { transform: [{ scale: imageButtonScale }] },
+                      form.image && styles.imageButtonSelected,
+                    ]}
+                  >
+                    <Icon
+                      name={form.image ? "check-circle" : "cloud-upload"}
+                      size={24}
+                      color={
+                        form.image ? SPOTIFY_COLORS.green : SPOTIFY_COLORS.white
+                      }
+                    />
+                    <Text
+                      style={[
+                        styles.imageButtonText,
+                        form.image && { color: SPOTIFY_COLORS.green },
+                      ]}
+                    >
+                      {form.image ? "Image Selected" : "Upload Image"}
+                    </Text>
+                  </Animated.View>
+                </TouchableOpacity>
+
+                {form.image && (
+                  <Animated.View
+                    style={styles.imagePreviewContainer}
+                    entering={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                  >
+                    <Image
+                      source={{ uri: form.image }}
+                      style={styles.previewImage}
+                    />
+                    <TouchableOpacity
+                      style={styles.removeImageButton}
+                      onPress={() => setForm({ ...form, image: null })}
+                    >
+                      <Icon
+                        name="close"
+                        size={20}
+                        color={SPOTIFY_COLORS.white}
+                      />
+                    </TouchableOpacity>
+                  </Animated.View>
+                )}
+              </View>
+
+              {/* Submit Button */}
+              <TouchableOpacity
+                onPress={handleSubmit}
+                activeOpacity={0.8}
+                style={styles.submitButtonContainer}
+              >
+                <Animated.View
+                  style={[
+                    styles.submitButton,
+                    { transform: [{ scale: submitButtonScale }] },
+                  ]}
+                >
+                  <LinearGradient
+                    colors={[SPOTIFY_COLORS.green, SPOTIFY_COLORS.accent]}
+                    style={styles.submitGradient}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                  >
+                    <Text style={styles.submitButtonText}>Post Your Ad</Text>
+                    <Icon name="send" size={20} color={SPOTIFY_COLORS.white} />
+                  </LinearGradient>
+                </Animated.View>
+              </TouchableOpacity>
             </Animated.View>
-          </TouchableOpacity>
-        </ScrollView>
-      </LinearGradient>
+          </ScrollView>
+        </LinearGradient>
+      </View>
     </SafeAreaView>
   );
 };
@@ -381,75 +558,141 @@ const PostAdScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: COLORS.backgroundDark,
+    backgroundColor: SPOTIFY_COLORS.black,
   },
   container: {
     flex: 1,
   },
-  content: {
-    padding: DESIGN_TOKENS.spacing.lg,
-    paddingBottom: DESIGN_TOKENS.spacing.xxl,
+  gradient: {
+    flex: 1,
   },
-  title: {
-    ...DESIGN_TOKENS.typography.h2,
-    marginBottom: DESIGN_TOKENS.spacing.xl,
-    textAlign: "center",
-    letterSpacing: 0.8,
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: SPOTIFY_COLORS.lightGray,
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: SPOTIFY_COLORS.lightGray,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: SPOTIFY_COLORS.white,
+  },
+  placeholder: {
+    width: 40,
+  },
+  content: {
+    padding: 20,
+    paddingBottom: 40,
+  },
+  form: {
+    gap: 24,
+  },
+  inputGroup: {
+    gap: 8,
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: SPOTIFY_COLORS.white,
+    marginBottom: 4,
+  },
+  row: {
+    flexDirection: "row",
+    gap: 16,
+  },
+  halfWidth: {
+    flex: 1,
   },
   input: {
-    backgroundColor: COLORS.surfaceDark,
-    borderRadius: DESIGN_TOKENS.borderRadius.md,
-    paddingHorizontal: DESIGN_TOKENS.spacing.md,
-    paddingVertical: DESIGN_TOKENS.spacing.sm + 4,
-    ...DESIGN_TOKENS.typography.body,
-    color: COLORS.textPrimary,
-    borderWidth: 1,
-    borderColor: COLORS.surfaceDark,
-    marginBottom: DESIGN_TOKENS.spacing.md,
-    ...DESIGN_TOKENS.shadows.sm,
+    borderRadius: 12,
+    borderWidth: 2,
+    backgroundColor: SPOTIFY_COLORS.lightGray,
+  },
+  textInput: {
+    padding: 16,
+    fontSize: 16,
+    color: SPOTIFY_COLORS.white,
+    fontWeight: "500",
+  },
+  descriptionContainer: {
+    minHeight: 100,
   },
   descriptionInput: {
-    minHeight: 100,
+    minHeight: 80,
     textAlignVertical: "top",
   },
   imageButton: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: COLORS.accentPrimary,
-    padding: DESIGN_TOKENS.spacing.md,
-    borderRadius: DESIGN_TOKENS.borderRadius.md,
-    marginBottom: DESIGN_TOKENS.spacing.md,
-    ...DESIGN_TOKENS.shadows.md,
-    gap: DESIGN_TOKENS.spacing.sm,
+    backgroundColor: SPOTIFY_COLORS.lightGray,
+    padding: 20,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: SPOTIFY_COLORS.lightGray,
+    borderStyle: "dashed",
+    gap: 12,
+  },
+  imageButtonSelected: {
+    borderColor: SPOTIFY_COLORS.green,
+    backgroundColor: SPOTIFY_COLORS.mediumGray,
   },
   imageButtonText: {
-    ...DESIGN_TOKENS.typography.button,
-    color: COLORS.white,
+    fontSize: 16,
+    fontWeight: "600",
+    color: SPOTIFY_COLORS.white,
+  },
+  imagePreviewContainer: {
+    marginTop: 16,
+    position: "relative",
   },
   previewImage: {
     width: "100%",
     height: 200,
-    borderRadius: DESIGN_TOKENS.borderRadius.md,
-    marginBottom: DESIGN_TOKENS.spacing.md,
-    alignSelf: "center",
+    borderRadius: 12,
     resizeMode: "cover",
-    borderWidth: 1,
-    borderColor: COLORS.accentSecondary,
+  },
+  removeImageButton: {
+    position: "absolute",
+    top: 8,
+    right: 8,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: SPOTIFY_COLORS.overlay,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  submitButtonContainer: {
+    marginTop: 12,
   },
   submitButton: {
+    borderRadius: 25,
+    overflow: "hidden",
+  },
+  submitGradient: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: COLORS.accentPrimary,
-    padding: DESIGN_TOKENS.spacing.md,
-    borderRadius: DESIGN_TOKENS.borderRadius.md,
-    ...DESIGN_TOKENS.shadows.lg,
-    marginTop: DESIGN_TOKENS.spacing.sm,
+    paddingVertical: 18,
+    paddingHorizontal: 32,
+    gap: 12,
   },
   submitButtonText: {
-    ...DESIGN_TOKENS.typography.button,
-    color: COLORS.white,
+    fontSize: 18,
+    fontWeight: "700",
+    color: SPOTIFY_COLORS.white,
   },
 });
 

@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   StyleSheet,
   Animated,
-  ImageBackground,
   RefreshControl,
   StatusBar,
   Dimensions,
@@ -16,11 +15,21 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from "expo-linear-gradient";
 import Icon from "react-native-vector-icons/MaterialIcons";
-import { COLORS } from "../utils/constants";
 
 const AnimatedFlatList = Animated.createAnimatedComponent(FlatList);
 
 const { width, height } = Dimensions.get("window");
+
+const SPOTIFY_COLORS = {
+  black: "#000000",
+  darkGray: "#121212",
+  mediumGray: "#1e1e1e",
+  lightGray: "#282828",
+  green: "#1db954",
+  white: "#ffffff",
+  lightText: "#b3b3b3",
+  accent: "#1ed760",
+};
 
 const ChatsListScreen = ({ navigation }) => {
   const [buyerId, setBuyerId] = useState(null);
@@ -254,7 +263,7 @@ const ChatsListScreen = ({ navigation }) => {
         <TouchableOpacity
           onPress={() => handlePress(item, index)}
           style={styles.touchableContent}
-          activeOpacity={0.8}
+          activeOpacity={0.7}
         >
           <View style={styles.conversationContent}>
             <View style={styles.leftSection}>
@@ -303,7 +312,11 @@ const ChatsListScreen = ({ navigation }) => {
             </View>
 
             <View style={styles.rightSection}>
-              <Icon name="chevron-right" size={24} color={COLORS.accent} />
+              <Icon
+                name="chevron-right"
+                size={24}
+                color={SPOTIFY_COLORS.green}
+              />
             </View>
           </View>
         </TouchableOpacity>
@@ -327,16 +340,16 @@ const ChatsListScreen = ({ navigation }) => {
     <>
       <StatusBar
         barStyle="light-content"
-        backgroundColor="transparent"
-        translucent
+        backgroundColor={SPOTIFY_COLORS.black}
+        translucent={false}
       />
-      <ImageBackground
-        source={require("../assets/images/chatbaground.jpg")}
-        style={styles.backgroundImage}
-        resizeMode="cover"
-      >
+      <View style={styles.container}>
         <LinearGradient
-          colors={["#1C2526", "#2E3B3E", "#1C2526"]}
+          colors={[
+            SPOTIFY_COLORS.black,
+            SPOTIFY_COLORS.darkGray,
+            SPOTIFY_COLORS.black,
+          ]}
           style={styles.gradient}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
@@ -385,13 +398,18 @@ const ChatsListScreen = ({ navigation }) => {
                 <RefreshControl
                   refreshing={refreshing}
                   onRefresh={onRefresh}
-                  tintColor={COLORS.accent}
-                  colors={[COLORS.accent]}
+                  tintColor={SPOTIFY_COLORS.green}
+                  colors={[SPOTIFY_COLORS.green]}
+                  backgroundColor={SPOTIFY_COLORS.darkGray}
                 />
               }
               ListEmptyComponent={() => (
                 <View style={styles.emptyContainer}>
-                  <Icon name="forum" size={64} color={COLORS.accent + "80"} />
+                  <Icon
+                    name="forum"
+                    size={64}
+                    color={SPOTIFY_COLORS.green + "80"}
+                  />
                   <Text style={styles.emptyTitle}>No conversations yet</Text>
                   <Text style={styles.emptyText}>
                     Your messages will appear here once you start chatting
@@ -401,15 +419,15 @@ const ChatsListScreen = ({ navigation }) => {
             />
           </Animated.View>
         </LinearGradient>
-      </ImageBackground>
+      </View>
     </>
   );
 };
 
 const styles = StyleSheet.create({
-  backgroundImage: {
+  container: {
     flex: 1,
-    opacity: 0.6,
+    backgroundColor: SPOTIFY_COLORS.black,
   },
   gradient: {
     flex: 1,
@@ -418,7 +436,7 @@ const styles = StyleSheet.create({
     paddingTop: Platform.OS === "ios" ? 60 : 40,
     paddingHorizontal: 24,
     paddingBottom: 20,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    backgroundColor: "rgba(0, 0, 0, 0.3)",
   },
   headerContent: {
     alignItems: "center",
@@ -426,13 +444,13 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 34,
     fontWeight: "900",
-    color: "#fff",
+    color: SPOTIFY_COLORS.white,
     textAlign: "center",
     letterSpacing: 1,
   },
   headerSubtitle: {
     fontSize: 16,
-    color: "rgba(255, 255, 255, 0.8)",
+    color: SPOTIFY_COLORS.lightText,
     marginTop: 6,
     fontWeight: "600",
   },
@@ -444,10 +462,12 @@ const styles = StyleSheet.create({
     paddingBottom: 120,
   },
   conversationCard: {
-    backgroundColor: "#E5E7EB",
-    borderRadius: 16,
-    marginVertical: 8,
+    backgroundColor: SPOTIFY_COLORS.mediumGray,
+    borderRadius: 12,
+    marginVertical: 6,
     padding: 4,
+    borderWidth: 1,
+    borderColor: SPOTIFY_COLORS.lightGray,
   },
   touchableContent: {
     padding: 16,
@@ -465,19 +485,22 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: "#2D3748",
+    backgroundColor: SPOTIFY_COLORS.lightGray,
     justifyContent: "center",
     alignItems: "center",
     marginRight: 16,
     position: "relative",
+    borderWidth: 2,
+    borderColor: SPOTIFY_COLORS.mediumGray,
   },
   unreadAvatar: {
-    backgroundColor: COLORS.accent,
+    backgroundColor: SPOTIFY_COLORS.green,
+    borderColor: SPOTIFY_COLORS.accent,
   },
   avatarText: {
     fontSize: 18,
     fontWeight: "700",
-    color: "#fff",
+    color: SPOTIFY_COLORS.white,
     letterSpacing: 0.5,
   },
   unreadDot: {
@@ -487,7 +510,9 @@ const styles = StyleSheet.create({
     width: 14,
     height: 14,
     borderRadius: 7,
-    backgroundColor: COLORS.accent,
+    backgroundColor: SPOTIFY_COLORS.accent,
+    borderWidth: 2,
+    borderColor: SPOTIFY_COLORS.mediumGray,
   },
   messageInfo: {
     flex: 1,
@@ -501,21 +526,21 @@ const styles = StyleSheet.create({
   userText: {
     fontSize: 18,
     fontWeight: "600",
-    color: "#1F2937",
+    color: SPOTIFY_COLORS.white,
     flex: 1,
   },
   unreadUserText: {
-    color: "#111827",
+    color: SPOTIFY_COLORS.white,
     fontWeight: "700",
   },
   messageText: {
     fontSize: 15,
-    color: "#4B5563",
+    color: SPOTIFY_COLORS.lightText,
     lineHeight: 22,
     marginRight: 8,
   },
   unreadMessageText: {
-    color: "#111827",
+    color: SPOTIFY_COLORS.white,
     fontWeight: "600",
   },
   messageImage: {
@@ -523,10 +548,12 @@ const styles = StyleSheet.create({
     height: 100,
     borderRadius: 12,
     marginRight: 8,
+    borderWidth: 1,
+    borderColor: SPOTIFY_COLORS.lightGray,
   },
   timeText: {
     fontSize: 13,
-    color: "#6B7280",
+    color: SPOTIFY_COLORS.lightText,
     fontWeight: "500",
     marginLeft: 8,
   },
@@ -545,14 +572,14 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 24,
     fontWeight: "700",
-    color: "#fff",
+    color: SPOTIFY_COLORS.white,
     marginTop: 24,
     marginBottom: 12,
     textAlign: "center",
   },
   emptyText: {
     fontSize: 16,
-    color: "rgba(255, 255, 255, 0.8)",
+    color: SPOTIFY_COLORS.lightText,
     textAlign: "center",
     lineHeight: 24,
   },
