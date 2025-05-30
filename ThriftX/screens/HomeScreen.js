@@ -175,10 +175,8 @@ const HomeScreen = ({ navigation }) => {
       console.log("Fetching vehicles with query:", queryString);
 
       const response = await fetch(
-        `http://192.168.153.122:8082/api/ads${queryString}`
+        `https://thrift-x.onrender.com/api/ads${queryString}`
       );
-
-      if (!response.ok) throw new Error(`Failed to fetch: ${response.status}`);
 
       const data = await response.json();
       const vehiclesData = Array.isArray(data.content) ? data.content : [];

@@ -130,7 +130,7 @@ const ProfileScreen = ({ navigation }) => {
 
         if (savedUserID) {
           const response = await fetch(
-            `http://192.168.153.122:8082/api/ads/user?user_id=${savedUserID}`
+            `https://thrift-x.onrender.com/api/ads/user?user_id=${savedUserID}`
           );
           const data = await response.json();
           setListings(data);

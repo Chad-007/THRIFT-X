@@ -319,7 +319,7 @@ const PostAdScreen = ({ navigation }) => {
     };
 
     try {
-      const res = await fetch("http://192.168.153.122:8082/api/ads/post", {
+      const res = await fetch("https://thrift-x.onrender.com/api/ads/post", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

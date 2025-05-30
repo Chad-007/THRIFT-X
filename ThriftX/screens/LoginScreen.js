@@ -54,7 +54,7 @@ const LoginScreen = ({ navigation }) => {
 
   const handleLogin = async () => {
     try {
-      const response = await fetch("http://192.168.153.122:8082/api/login", {
+      const response = await fetch("https://thrift-x.onrender.com/api/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -130,7 +130,7 @@ const ChatScreen = ({ route, navigation }) => {
   const fetchChats = async (buyerId, sellerId, adId) => {
     try {
       const response = await fetch(
-        `http://192.168.153.122:8082/api/realtime-messages/${buyerId}/${sellerId}/${adId}`
+        `https://thrift-x.onrender.com/api/realtime-messages/${buyerId}/${sellerId}/${adId}`
       );
       const data = await response.json();
 
