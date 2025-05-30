@@ -9,18 +9,18 @@ import {
   Platform,
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialIcons";
-
+const signedImageUrl =
+  "https://xdqevezazwvadambeqmz.supabase.co/storage/v1/object/public/image/vehicle_1748617437358.jpeg";
 const COLORS = {
-  backgroundDark: "#1C1C1E", // Dark grey background
-  surfaceDark: "#2A2A2E", // Slightly lighter grey
+  backgroundDark: "#1C1C1E",
+  surfaceDark: "#2A2A2E",
 
-  accentPrimary: "#2ECC71", // Vibrant green for icons
+  accentPrimary: "#2ECC71",
   accentSecondary: "#27AE60",
 
-  textPrimary: "#FFFFFF", // White font
-  textSecondary: "#F0F0F0", // Slightly lighter white
-  textPlaceholder: "#CCCCCC", // Light grey for placeholders
-
+  textPrimary: "#FFFFFF",
+  textSecondary: "#F0F0F0",
+  textPlaceholder: "#CCCCCC",
   white: "#FFFFFF",
   black: "#000000",
   error: "#E74C3C",
@@ -84,21 +84,12 @@ const DESIGN_TOKENS = {
     },
   },
 };
-
 const VehicleCard = ({ vehicle, onPress, animatedStyle }) => {
   return (
     <Animated.View style={[styles.card, animatedStyle]}>
       <TouchableOpacity activeOpacity={0.85} onPress={onPress}>
         <View style={styles.content}>
-          <Image
-            source={
-              vehicle.imageUrl
-                ? { uri: vehicle.imageUrl }
-                : require("../assets/images/placeholder.png")
-            }
-            style={styles.image}
-            resizeMode="cover"
-          />
+          <Image source={{ uri: vehicle.imageUrl }} style={styles.image} />
           <View style={styles.infoContainer}>
             <Text style={styles.title} numberOfLines={1}>
               {vehicle.title || "Unknown Model"}
@@ -137,7 +128,7 @@ const VehicleCard = ({ vehicle, onPress, animatedStyle }) => {
 
 const styles = StyleSheet.create({
   card: {
-    width: 160, // reduced width for grid layout
+    width: 160,
     margin: SPACING.sm,
     borderRadius: BORDER_RADIUS.md,
     overflow: "hidden",
@@ -153,7 +144,7 @@ const styles = StyleSheet.create({
 
   image: {
     width: "100%",
-    height: 100, // smaller height
+    height: 100,
     borderRadius: BORDER_RADIUS.sm,
     backgroundColor: COLORS.backgroundDark,
     marginBottom: SPACING.sm,

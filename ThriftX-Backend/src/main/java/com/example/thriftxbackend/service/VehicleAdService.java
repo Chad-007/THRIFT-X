@@ -42,43 +42,15 @@ public class VehicleAdService {
         ad.setYear(dto.getYear());
         ad.setMileage(dto.getMileage());
         ad.setDescription(dto.getDescription());
-
-        if (dto.getImageUrl() != null && !dto.getImageUrl().isEmpty()) {
-            String savedPath = saveBase64Image(dto.getImageUrl());
-            ad.setImageUrl(savedPath);
-        } else {
-            ad.setImageUrl(null);
-        }
-
-        System.out.println("Saving ad: " + ad.getTitle() + " for user: " + user.getUsername());
+        ad.setImageUrl(dto.getImageUrl());
+        System.out.println("Saving ad: " + ad.getTitle() + " for user: " + user.getUsername()+ "with the image url as "+ad.getImageUrl());
         vehicleAdRepository.save(ad);
     }
-
-    private String saveBase64Image(String base64Image) {
-        try {
-            if (base64Image.contains(",")) {
-                base64Image = base64Image.split(",")[1];
-            }
-
-            byte[] imageBytes = Base64.getDecoder().decode(base64Image);
-
-            String filename = "vehicle_" + System.currentTimeMillis() + ".jpg";
-            java.nio.file.Path path = Paths.get("uploads/" + filename);
-            Files.createDirectories(path.getParent());
-
-            try (FileOutputStream fos = new FileOutputStream(path.toFile())) {
-                fos.write(imageBytes);
-            }
-
-            return "/uploads/" + filename;
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to save image", e);
-        }
-    }
-
     public Page<VehicleAdResponseDTO> getAllAds(int page, int size) {
         Page<VehicleAd> vehicleAds = vehicleAdRepository.findAll(PageRequest.of(page, size));
         return vehicleAds.map(VehicleAdResponseDTO::new);
+        
+
     }
     
     public Page<VehicleAdResponseDTO> searchAds(

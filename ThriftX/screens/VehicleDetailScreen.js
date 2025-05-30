@@ -105,11 +105,7 @@ const VehicleDetailScreen = ({ route, navigation }) => {
         >
           <View style={styles.imageContainer}>
             <Image
-              source={
-                vehicle.imageUrl
-                  ? { uri: vehicle.imageUrl }
-                  : require("../assets/images/placeholder.png")
-              }
+              source={{ uri: vehicle.imageUrl }}
               style={styles.image}
               resizeMode="cover"
             />

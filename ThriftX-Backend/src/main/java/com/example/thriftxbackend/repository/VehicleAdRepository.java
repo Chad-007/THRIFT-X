@@ -32,7 +32,4 @@ Page<VehicleAd> searchVehicles(
     @Param("minPrice") Integer minPrice,
     @Param("maxPrice") Integer maxPrice,
     Pageable pageable);
-
-
-
 }

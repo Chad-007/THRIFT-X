@@ -47,7 +47,7 @@ const PostAdScreen = ({ navigation }) => {
     mileage: "",
     description: "",
     image: null,
-    imageUrl: null, // Changed from base64Image to imageUrl
+    imageUrl: null,
   });
 
   const [focusedInput, setFocusedInput] = useState(null);
@@ -140,18 +140,13 @@ const PostAdScreen = ({ navigation }) => {
   const uploadImageToSupabase = async (imageUri) => {
     try {
       setUploadingImage(true);
-
-      // Create unique filename
       const timestamp = Date.now();
       const fileExtension = imageUri.split(".").pop();
       const fileName = `vehicle_${timestamp}.${fileExtension}`;
 
-      // Read file as base64
       const base64 = await FileSystem.readAsStringAsync(imageUri, {
         encoding: FileSystem.EncodingType.Base64,
       });
-
-      // Convert base64 to Uint8Array
       const byteCharacters = atob(base64);
       const byteNumbers = new Array(byteCharacters.length);
       for (let i = 0; i < byteCharacters.length; i++) {
@@ -159,8 +154,7 @@ const PostAdScreen = ({ navigation }) => {
       }
       const byteArray = new Uint8Array(byteNumbers);
 
-      // Upload to Supabase Storage
-      const { data, error } = await supabase.storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
         .from("image")
         .upload(fileName, byteArray, {
           cacheControl: "3600",
@@ -168,27 +162,32 @@ const PostAdScreen = ({ navigation }) => {
           contentType: `image/${fileExtension}`,
         });
 
-      if (error) throw error;
+      if (uploadError) {
+        console.error("Supabase upload error:", uploadError);
+        throw uploadError;
+      }
 
-      // Get public URL
-      const { data: urlData } = supabase.storage
-        .from("image")
-        .getPublicUrl(fileName);
+      console.log("Upload successful, data:", uploadData);
 
-      return urlData.publicUrl;
+      const uploadedFilename = uploadData?.Key;
+      console.log("Uploaded filename (Key):", uploadedFilename);
+
+      const publicImageUrl = `https://xdqevezazwvadambeqmz.supabase.co/storage/v1/object/public/${uploadedFilename}`;
+      console.log("Public URL:", publicImageUrl);
+
+      return publicImageUrl;
     } catch (error) {
       console.error("Upload error:", error);
+      Alert.alert("Error", "Failed to upload image.");
       throw error;
     } finally {
       setUploadingImage(false);
     }
   };
-
   const handleImagePick = async () => {
     const hasPermission = await requestPermission();
     if (!hasPermission) return;
 
-    // Button press animation
     Animated.sequence([
       Animated.timing(imageButtonScale, {
         toValue: 0.95,
@@ -204,7 +203,7 @@ const PostAdScreen = ({ navigation }) => {
 
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ["images"], // Modern approach using array
+        mediaTypes: ["images"],
         allowsEditing: true,
         aspect: [16, 9],
         quality: 0.8,
@@ -213,11 +212,9 @@ const PostAdScreen = ({ navigation }) => {
       if (!result.canceled && result.assets && result.assets.length > 0) {
         const selectedImageUri = result.assets[0].uri;
 
-        // Set local image for preview immediately
         setForm((prev) => ({ ...prev, image: selectedImageUri }));
 
         try {
-          // Ensure user is signed in — replace these with secure input values!
           const {
             user,
             session,
@@ -233,9 +230,8 @@ const PostAdScreen = ({ navigation }) => {
           }
 
           console.log("Signup successful:", user);
-          console.log("Session:", session); // This will be null
+          console.log("Session:", session);
 
-          // Now sign in
           const {
             user: signInUser,
             session: signInSession,
@@ -253,17 +249,11 @@ const PostAdScreen = ({ navigation }) => {
           console.log("Signin successful:", signInUser);
           console.log("Session after signin:", signInSession);
 
-          // Now you have session & user and can upload safely
-
           if (!user) {
             Alert.alert("Error", "User data not available");
             return;
           }
-
-          // Upload image to Supabase
           const supabaseUrl = await uploadImageToSupabase(selectedImageUri);
-
-          // Update form state
           setForm((prev) => ({
             ...prev,
             image: selectedImageUri,
@@ -325,7 +315,7 @@ const PostAdScreen = ({ navigation }) => {
       year: parseInt(form.year),
       mileage: parseInt(form.mileage),
       description: form.description.trim(),
-      imageUrl: form.imageUrl || null, // Send Supabase URL or null
+      imageUrl: form.imageUrl || null,
     };
 
     try {
@@ -354,7 +344,7 @@ const PostAdScreen = ({ navigation }) => {
                 mileage: "",
                 description: "",
                 image: null,
-                imageUrl: null, // Reset imageUrl as well
+                imageUrl: null,
               });
             },
           },
@@ -406,7 +396,6 @@ const PostAdScreen = ({ navigation }) => {
           colors={[SPOTIFY_COLORS.black, SPOTIFY_COLORS.darkGray]}
           style={styles.gradient}
         >
-          {/* Header */}
           <Animated.View
             style={[
               styles.header,
@@ -446,7 +435,6 @@ const PostAdScreen = ({ navigation }) => {
                 },
               ]}
             >
-              {/* Form Fields */}
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>Vehicle Title</Text>
                 <Animated.View style={getInputStyle("title")}>
@@ -660,7 +648,6 @@ const PostAdScreen = ({ navigation }) => {
                 )}
               </View>
 
-              {/* Submit Button */}
               <TouchableOpacity
                 onPress={handleSubmit}
                 activeOpacity={0.8}
@@ -671,7 +658,7 @@ const PostAdScreen = ({ navigation }) => {
                   style={[
                     styles.submitButton,
                     { transform: [{ scale: submitButtonScale }] },
-                    uploadingImage && styles.submitButtonDisabled,
+                    uploadingImage ? styles.submitButtonDisabled : null,
                   ]}
                 >
                   <LinearGradient
