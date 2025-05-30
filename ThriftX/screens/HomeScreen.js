@@ -147,6 +147,8 @@ const HomeScreen = ({ navigation }) => {
       loadingRotation.setValue(0);
     }
   }, [isLoading]);
+  const DEFAULT_MIN_PRICE = 0;
+  const DEFAULT_MAX_PRICE = 1000000;
 
   const fetchVehicles = async (searchTerm, filtersObj) => {
     try {
@@ -159,12 +161,19 @@ const HomeScreen = ({ navigation }) => {
         queryParams.push(`category=${encodeURIComponent(filtersObj.category)}`);
       if (filtersObj.location)
         queryParams.push(`location=${encodeURIComponent(filtersObj.location)}`);
-      if (filtersObj.priceRange) {
+
+      if (
+        filtersObj.priceRange &&
+        (filtersObj.priceRange[0] !== DEFAULT_MIN_PRICE ||
+          filtersObj.priceRange[1] !== DEFAULT_MAX_PRICE)
+      ) {
         queryParams.push(`minPrice=${filtersObj.priceRange[0]}`);
         queryParams.push(`maxPrice=${filtersObj.priceRange[1]}`);
       }
 
       const queryString = queryParams.length ? `?${queryParams.join("&")}` : "";
+      console.log("Fetching vehicles with query:", queryString);
+
       const response = await fetch(
         `http://192.168.153.122:8082/api/ads${queryString}`
       );
@@ -372,6 +381,7 @@ const HomeScreen = ({ navigation }) => {
         ) : (
           <FlatList
             data={vehicles}
+            numColumns={2}
             keyExtractor={(item) =>
               item.id?.toString() || Math.random().toString()
             }
@@ -561,8 +571,10 @@ const styles = StyleSheet.create({
     paddingBottom: DESIGN_TOKENS.spacing.xxl * 2,
   },
   vehicleCardContainer: {
-    marginVertical: DESIGN_TOKENS.spacing.xs,
+    flexBasis: "48%",
+    margin: 8,
   },
+
   separator: {
     height: DESIGN_TOKENS.spacing.sm,
   },

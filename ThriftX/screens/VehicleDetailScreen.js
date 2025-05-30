@@ -17,17 +17,16 @@ import Icon from "react-native-vector-icons/MaterialIcons";
 const COLORS = {
   backgroundDark: "#1A1A2E",
   surfaceDark: "#2C2C40",
-
   accentPrimary: "#007BFF",
   accentSecondary: "#6C757D",
-
   textPrimary: "#E0E0E0",
   textSecondary: "#B0B0B0",
   textPlaceholder: "#707070",
-
   white: "#FFFFFF",
   black: "#000000",
   error: "#DC3545",
+  green: "#28A745",
+  grey: "#6C757D",
 };
 
 const SPACING = {
@@ -138,9 +137,11 @@ const VehicleDetailScreen = ({ route, navigation }) => {
           >
             <View style={styles.headerRow}>
               <Text style={styles.title}>{displayValue(vehicle.title)}</Text>
-              <Text style={styles.price}>
-                {formatPrice(vehicle.price) || "N/A"}
-              </Text>
+              <View style={styles.priceContainer}>
+                <Text style={styles.price}>
+                  {formatPrice(vehicle.price) || "N/A"}
+                </Text>
+              </View>
             </View>
 
             <View style={styles.detailsSection}>
@@ -186,15 +187,10 @@ const VehicleDetailScreen = ({ route, navigation }) => {
                 })
               }
             >
-              <LinearGradient
-                colors={[COLORS.accentPrimary, COLORS.accentSecondary]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={styles.messageButtonGradient}
-              >
-                <Icon name="chat-bubble" size={22} color={COLORS.white} />
+              <View style={styles.messageButtonContent}>
+                <Icon name="chat-bubble" size={22} color={COLORS.green} />
                 <Text style={styles.messageButtonText}>Message Seller</Text>
-              </LinearGradient>
+              </View>
             </TouchableOpacity>
           </BlurView>
         </ScrollView>
@@ -286,9 +282,16 @@ const styles = StyleSheet.create({
     marginRight: SPACING.md,
     lineHeight: 38,
   },
+  priceContainer: {
+    borderWidth: 2,
+    borderColor: COLORS.green,
+    borderRadius: BORDER_RADIUS.sm,
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: SPACING.xs,
+  },
   price: {
     ...TYPOGRAPHY.h2,
-    color: COLORS.accentPrimary,
+    color: COLORS.white,
     fontWeight: "bold",
   },
   detailsSection: {
@@ -337,14 +340,16 @@ const styles = StyleSheet.create({
   },
   messageButton: {
     borderRadius: BORDER_RADIUS.md,
+    borderWidth: 2,
+    borderColor: COLORS.white,
     overflow: "hidden",
-    shadowColor: COLORS.accentPrimary,
+
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.4,
     shadowRadius: 12,
     elevation: 8,
   },
-  messageButtonGradient: {
+  messageButtonContent: {
     flexDirection: "row",
     paddingVertical: SPACING.md,
     alignItems: "center",
@@ -375,6 +380,7 @@ const styles = StyleSheet.create({
   },
   backButtonTextOnError: {
     ...TYPOGRAPHY.button,
+    color: COLORS.white,
   },
 });
 

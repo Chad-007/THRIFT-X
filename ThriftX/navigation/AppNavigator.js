@@ -147,7 +147,7 @@ const CustomTabBar = ({ state, descriptors, navigation }) => {
                 <Animated.View style={[{ transform: [{ scale: iconScale }] }]}>
                   {options.tabBarIcon({
                     focused: isFocused,
-                    color: isFocused ? COLORS.accent : COLORS.textSecondary,
+                    color: isFocused ? COLORS.green : COLORS.textSecondary,
                     size: 26,
                   })}
                 </Animated.View>
@@ -156,7 +156,7 @@ const CustomTabBar = ({ state, descriptors, navigation }) => {
                 style={[
                   styles.tabLabel,
                   {
-                    color: isFocused ? COLORS.accent : COLORS.textSecondary,
+                    color: isFocused ? COLORS.green : COLORS.textSecondary,
                     transform: [{ translateY: labelTranslateY }],
                   },
                 ]}
@@ -262,6 +262,7 @@ const MainTabs = () => {
     </Tab.Navigator>
   );
 };
+
 const AppNavigator = ({ initialRoute = "Intro" }) => (
   <Stack.Navigator
     initialRouteName={initialRoute}
@@ -299,10 +300,10 @@ const AppNavigator = ({ initialRoute = "Intro" }) => (
     <Stack.Screen name="Signup" component={SignupScreen} />
     <Stack.Screen name="Main" component={MainTabs} />
     <Stack.Screen name="VehicleDetail" component={VehicleDetailScreen} />
-
     <Stack.Screen name="Chatt" component={ChatScreen} />
   </Stack.Navigator>
 );
+
 const styles = StyleSheet.create({
   tabBarContainer: {
     position: "absolute",
@@ -315,7 +316,7 @@ const styles = StyleSheet.create({
   },
   tabBar: {
     flexDirection: "row",
-    backgroundColor: COLORS.background,
+    backgroundColor: COLORS.black,
     height: 65,
     borderRadius: 32.5,
     marginHorizontal: 10,
@@ -343,8 +344,9 @@ const styles = StyleSheet.create({
     position: "absolute",
     width: "100%",
     height: "100%",
-    backgroundColor: COLORS.accent,
     borderRadius: 22,
+    borderWidth: 1,
+    borderColor: COLORS.green,
   },
   tabLabel: {
     fontSize: 11,
@@ -353,4 +355,5 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
 });
+
 export default AppNavigator;
