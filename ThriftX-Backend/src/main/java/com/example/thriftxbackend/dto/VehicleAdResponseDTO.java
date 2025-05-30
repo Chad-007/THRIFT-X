@@ -31,7 +31,7 @@ public class VehicleAdResponseDTO {
         this.description = vehicleAd.getDescription();
         this.imageUrl = vehicleAd.getImageUrl();
     }
-
+    
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 

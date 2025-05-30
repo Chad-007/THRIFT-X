@@ -18,10 +18,10 @@ import { LinearGradient } from "expo-linear-gradient";
 import * as ImagePicker from "expo-image-picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Icon from "react-native-vector-icons/MaterialIcons";
-
+import { supabase } from "../services/supabaseClient";
+import * as FileSystem from "expo-file-system";
 const { width } = Dimensions.get("window");
 
-// Spotify-inspired colors
 const SPOTIFY_COLORS = {
   black: "#000000",
   darkGray: "#121212",
@@ -47,18 +47,18 @@ const PostAdScreen = ({ navigation }) => {
     mileage: "",
     description: "",
     image: null,
+    imageUrl: null, // Changed from base64Image to imageUrl
   });
 
   const [focusedInput, setFocusedInput] = useState(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
-  // Animation refs
   const fadeInAnimation = useRef(new Animated.Value(0)).current;
   const slideUpAnimation = useRef(new Animated.Value(50)).current;
   const imageButtonScale = useRef(new Animated.Value(1)).current;
   const submitButtonScale = useRef(new Animated.Value(1)).current;
   const headerAnimation = useRef(new Animated.Value(0)).current;
 
-  // Input focus animations
   const inputAnimations = useRef({
     title: new Animated.Value(0),
     price: new Animated.Value(0),
@@ -82,7 +82,6 @@ const PostAdScreen = ({ navigation }) => {
     };
     loadUsername();
 
-    // Initial animations
     Animated.parallel([
       Animated.timing(fadeInAnimation, {
         toValue: 1,
@@ -138,6 +137,53 @@ const PostAdScreen = ({ navigation }) => {
     return true;
   };
 
+  const uploadImageToSupabase = async (imageUri) => {
+    try {
+      setUploadingImage(true);
+
+      // Create unique filename
+      const timestamp = Date.now();
+      const fileExtension = imageUri.split(".").pop();
+      const fileName = `vehicle_${timestamp}.${fileExtension}`;
+
+      // Read file as base64
+      const base64 = await FileSystem.readAsStringAsync(imageUri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+
+      // Convert base64 to Uint8Array
+      const byteCharacters = atob(base64);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+
+      // Upload to Supabase Storage
+      const { data, error } = await supabase.storage
+        .from("image")
+        .upload(fileName, byteArray, {
+          cacheControl: "3600",
+          upsert: false,
+          contentType: `image/${fileExtension}`,
+        });
+
+      if (error) throw error;
+
+      // Get public URL
+      const { data: urlData } = supabase.storage
+        .from("image")
+        .getPublicUrl(fileName);
+
+      return urlData.publicUrl;
+    } catch (error) {
+      console.error("Upload error:", error);
+      throw error;
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
   const handleImagePick = async () => {
     const hasPermission = await requestPermission();
     if (!hasPermission) return;
@@ -158,16 +204,77 @@ const PostAdScreen = ({ navigation }) => {
 
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: ["images"], // Modern approach using array
         allowsEditing: true,
         aspect: [16, 9],
         quality: 0.8,
-        base64: true,
       });
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
-        const base64Image = `data:image/jpeg;base64,${result.assets[0].base64}`;
-        setForm({ ...form, image: base64Image });
+        const selectedImageUri = result.assets[0].uri;
+
+        // Set local image for preview immediately
+        setForm((prev) => ({ ...prev, image: selectedImageUri }));
+
+        try {
+          // Ensure user is signed in — replace these with secure input values!
+          const {
+            user,
+            session,
+            error: signupError,
+          } = await supabase.auth.signUp({
+            email: "alansebastian484@gmail.com",
+            password: "9946701924@Alan",
+          });
+
+          if (signupError) {
+            console.error("Signup failed:", signupError.message);
+            return;
+          }
+
+          console.log("Signup successful:", user);
+          console.log("Session:", session); // This will be null
+
+          // Now sign in
+          const {
+            user: signInUser,
+            session: signInSession,
+            error: signInError,
+          } = await supabase.auth.signIn({
+            email: "alansebastian484@gmail.com",
+            password: "9946701924@Alan",
+          });
+
+          if (signInError) {
+            console.error("Signin failed:", signInError.message);
+            return;
+          }
+
+          console.log("Signin successful:", signInUser);
+          console.log("Session after signin:", signInSession);
+
+          // Now you have session & user and can upload safely
+
+          if (!user) {
+            Alert.alert("Error", "User data not available");
+            return;
+          }
+
+          // Upload image to Supabase
+          const supabaseUrl = await uploadImageToSupabase(selectedImageUri);
+
+          // Update form state
+          setForm((prev) => ({
+            ...prev,
+            image: selectedImageUri,
+            imageUrl: supabaseUrl,
+          }));
+
+          console.log("Image uploaded successfully:", supabaseUrl);
+        } catch (err) {
+          console.error("Unexpected error:", err);
+          Alert.alert("Error", "Something went wrong while uploading.");
+        }
       }
     } catch (error) {
       console.error("ImagePicker Error: ", error);
@@ -176,7 +283,6 @@ const PostAdScreen = ({ navigation }) => {
   };
 
   const handleSubmit = async () => {
-    // Button press animation
     Animated.sequence([
       Animated.timing(submitButtonScale, {
         toValue: 0.95,
@@ -190,7 +296,6 @@ const PostAdScreen = ({ navigation }) => {
       }),
     ]).start();
 
-    // Validation
     const requiredFields = [
       "title",
       "price",
@@ -202,12 +307,10 @@ const PostAdScreen = ({ navigation }) => {
     ];
     const missingFields = requiredFields.filter((field) => !form[field].trim());
 
-    if (missingFields.length > 0 || !form.image) {
+    if (missingFields.length > 0) {
       Alert.alert(
         "Missing Information",
-        !form.image
-          ? "Please upload an image for your ad."
-          : "Please fill in all required fields.",
+        "Please fill in all required fields.",
         [{ text: "OK", style: "default" }]
       );
       return;
@@ -222,7 +325,7 @@ const PostAdScreen = ({ navigation }) => {
       year: parseInt(form.year),
       mileage: parseInt(form.mileage),
       description: form.description.trim(),
-      imageUrl: form.image,
+      imageUrl: form.imageUrl || null, // Send Supabase URL or null
     };
 
     try {
@@ -240,7 +343,7 @@ const PostAdScreen = ({ navigation }) => {
             text: "OK",
             onPress: () => {
               navigation.navigate("Home");
-              // Reset form but keep username
+
               setForm({
                 username: form.username,
                 title: "",
@@ -251,6 +354,7 @@ const PostAdScreen = ({ navigation }) => {
                 mileage: "",
                 description: "",
                 image: null,
+                imageUrl: null, // Reset imageUrl as well
               });
             },
           },
@@ -471,31 +575,50 @@ const PostAdScreen = ({ navigation }) => {
                 </Animated.View>
               </View>
 
-              {/* Image Upload */}
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>Vehicle Image</Text>
-                <TouchableOpacity onPress={handleImagePick} activeOpacity={0.8}>
+                <TouchableOpacity
+                  onPress={handleImagePick}
+                  activeOpacity={0.8}
+                  disabled={uploadingImage}
+                >
                   <Animated.View
                     style={[
                       styles.imageButton,
                       { transform: [{ scale: imageButtonScale }] },
                       form.image && styles.imageButtonSelected,
+                      uploadingImage && styles.imageButtonUploading,
                     ]}
                   >
                     <Icon
-                      name={form.image ? "check-circle" : "cloud-upload"}
+                      name={
+                        uploadingImage
+                          ? "cloud-upload"
+                          : form.image
+                          ? "check-circle"
+                          : "cloud-upload"
+                      }
                       size={24}
                       color={
-                        form.image ? SPOTIFY_COLORS.green : SPOTIFY_COLORS.white
+                        uploadingImage
+                          ? SPOTIFY_COLORS.lightText
+                          : form.image
+                          ? SPOTIFY_COLORS.green
+                          : SPOTIFY_COLORS.white
                       }
                     />
                     <Text
                       style={[
                         styles.imageButtonText,
                         form.image && { color: SPOTIFY_COLORS.green },
+                        uploadingImage && { color: SPOTIFY_COLORS.lightText },
                       ]}
                     >
-                      {form.image ? "Image Selected" : "Upload Image"}
+                      {uploadingImage
+                        ? "Uploading..."
+                        : form.image
+                        ? "Image Selected"
+                        : "Upload Image"}
                     </Text>
                   </Animated.View>
                 </TouchableOpacity>
@@ -512,7 +635,10 @@ const PostAdScreen = ({ navigation }) => {
                     />
                     <TouchableOpacity
                       style={styles.removeImageButton}
-                      onPress={() => setForm({ ...form, image: null })}
+                      onPress={() =>
+                        setForm({ ...form, image: null, imageUrl: null })
+                      }
+                      disabled={uploadingImage}
                     >
                       <Icon
                         name="close"
@@ -520,6 +646,16 @@ const PostAdScreen = ({ navigation }) => {
                         color={SPOTIFY_COLORS.white}
                       />
                     </TouchableOpacity>
+                    {form.imageUrl && (
+                      <View style={styles.uploadStatusBadge}>
+                        <Icon
+                          name="cloud-done"
+                          size={16}
+                          color={SPOTIFY_COLORS.white}
+                        />
+                        <Text style={styles.uploadStatusText}>Uploaded</Text>
+                      </View>
+                    )}
                   </Animated.View>
                 )}
               </View>
@@ -529,21 +665,42 @@ const PostAdScreen = ({ navigation }) => {
                 onPress={handleSubmit}
                 activeOpacity={0.8}
                 style={styles.submitButtonContainer}
+                disabled={uploadingImage}
               >
                 <Animated.View
                   style={[
                     styles.submitButton,
                     { transform: [{ scale: submitButtonScale }] },
+                    uploadingImage && styles.submitButtonDisabled,
                   ]}
                 >
                   <LinearGradient
-                    colors={[SPOTIFY_COLORS.green, SPOTIFY_COLORS.accent]}
+                    colors={
+                      uploadingImage
+                        ? [SPOTIFY_COLORS.lightGray, SPOTIFY_COLORS.lightGray]
+                        : [SPOTIFY_COLORS.green, SPOTIFY_COLORS.accent]
+                    }
                     style={styles.submitGradient}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 0 }}
                   >
-                    <Text style={styles.submitButtonText}>Post Your Ad</Text>
-                    <Icon name="send" size={20} color={SPOTIFY_COLORS.white} />
+                    <Text
+                      style={[
+                        styles.submitButtonText,
+                        uploadingImage && { color: SPOTIFY_COLORS.darkText },
+                      ]}
+                    >
+                      {uploadingImage ? "Please Wait..." : "Post Your Ad"}
+                    </Text>
+                    <Icon
+                      name="send"
+                      size={20}
+                      color={
+                        uploadingImage
+                          ? SPOTIFY_COLORS.darkText
+                          : SPOTIFY_COLORS.white
+                      }
+                    />
                   </LinearGradient>
                 </Animated.View>
               </TouchableOpacity>
@@ -648,6 +805,9 @@ const styles = StyleSheet.create({
     borderColor: SPOTIFY_COLORS.green,
     backgroundColor: SPOTIFY_COLORS.mediumGray,
   },
+  imageButtonUploading: {
+    opacity: 0.7,
+  },
   imageButtonText: {
     fontSize: 16,
     fontWeight: "600",
@@ -674,12 +834,32 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
+  uploadStatusBadge: {
+    position: "absolute",
+    bottom: 8,
+    right: 8,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: SPOTIFY_COLORS.green,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    gap: 4,
+  },
+  uploadStatusText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: SPOTIFY_COLORS.white,
+  },
   submitButtonContainer: {
     marginTop: 12,
   },
   submitButton: {
     borderRadius: 25,
     overflow: "hidden",
+  },
+  submitButtonDisabled: {
+    opacity: 0.7,
   },
   submitGradient: {
     flexDirection: "row",
