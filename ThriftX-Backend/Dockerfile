@@ -4,6 +4,6 @@ run mvn clean package -DskipTests
 
 
 FROM openjdk:17-jdk-slim
-COPY --from=build /target/ThriftX-Backend-1.0-SNAPSHOT.jar ThriftX-Backend.jar
+COPY --from=build /target/signup-backend-0.0.1-SNAPSHOT.jar ThriftX-Backend.jar
 EXPOSE 8080
 ENTRYPOINT [ "java","-jar","ThriftX-Backend.jar" ]
