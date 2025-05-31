@@ -126,7 +126,7 @@ const ChatsListScreen = ({ navigation }) => {
       if (!isRefresh) setLoading(true);
 
       const response = await fetch(
-        `http://192.168.153.122/api/realtime-messages/latest/${buyerId}`
+        `https://thrift-x.onrender.com/api/realtime-messages/latest/${buyerId}`
       );
       const data = await response.json();
 
