@@ -16,20 +16,21 @@ public interface VehicleAdRepository extends JpaRepository<VehicleAd, Long> {
     List<VehicleAd> findByYear(String year);
     List<VehicleAd> findByMileage(String mileage);
     List<VehicleAd> findByUserId(Long user_id);
-    @Query("SELECT v FROM VehicleAd v WHERE " +
-       "(:search IS NULL OR " +
-       "LOWER(v.title) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
-       "LOWER(v.description) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
-       "v.year LIKE CONCAT('%', :search, '%')) " +
-       "AND (:category IS NULL OR v.category = :category) " +
-       "AND (:location IS NULL OR LOWER(v.location) LIKE LOWER(CONCAT('%', :location, '%'))) " +
-       "AND (:minPrice IS NULL OR v.price >= :minPrice) " +
-       "AND (:maxPrice IS NULL OR v.price <= :maxPrice)")
+    @Query(value = "SELECT * FROM vehicle_ad v WHERE " +
+    "(:search IS NULL OR " +
+    "LOWER(v.title) LIKE LOWER('%' || :search || '%') OR " +
+    "LOWER(v.description) LIKE LOWER('%' || :search || '%') OR " +
+    "v.year LIKE '%' || :search || '%') " +
+    "AND (:category IS NULL OR LOWER(v.category) = LOWER(:category)) " +
+    "AND (:location IS NULL OR LOWER(v.location) LIKE LOWER('%' || :location || '%')) " +
+    "AND (:minPrice IS NULL OR v.price >= :minPrice) " +
+    "AND (:maxPrice IS NULL OR v.price <= :maxPrice)",
+    nativeQuery = true)
 Page<VehicleAd> searchVehicles(
-    @Param("search") String search,   
-    @Param("category") String category,
-    @Param("location") String location,
-    @Param("minPrice") Integer minPrice,
-    @Param("maxPrice") Integer maxPrice,
-    Pageable pageable);
+ @Param("search") String search,   
+ @Param("category") String category,
+ @Param("location") String location,
+ @Param("minPrice") Integer minPrice,
+ @Param("maxPrice") Integer maxPrice,
+ Pageable pageable);
 }
