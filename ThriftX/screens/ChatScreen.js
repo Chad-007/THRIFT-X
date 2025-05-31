@@ -243,7 +243,7 @@ const ChatScreen = ({ route, navigation }) => {
   return (
     <View style={styles.container}>
       <ImageBackground
-        source={require("../assets/images/chatbaground.jpg")}
+        source={require("../assets/images/splash.png")}
         style={styles.backgroundImage}
         resizeMode="cover"
       >

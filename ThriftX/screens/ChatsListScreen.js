@@ -137,6 +137,7 @@ const ChatsListScreen = ({ navigation }) => {
         const otherUserId = isBuyerSender
           ? message.receiverid
           : message.senderid;
+        const username = message.username;
 
         const groupKey = `${otherUserId}-${message.adid}`;
 
@@ -284,7 +285,7 @@ const ChatsListScreen = ({ navigation }) => {
                       item.isUnread && styles.unreadUserText,
                     ]}
                   >
-                    User {item.otherUserId}
+                    {item.username}
                   </Text>
                   <Text style={styles.timeText}>
                     {formatTime(item.timestamp || item.createdAt)}

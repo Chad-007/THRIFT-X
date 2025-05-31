@@ -4,14 +4,15 @@
     "slug": "olx-vehicle-clone",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "../assets/images/icon.png",
+    "icon": "./assets/images/icon.png",
     "splash": {
-      "image": ".//assets/images/splash.png",
+      "image": "./assets/images/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#f1b00f"
     },
     "updates": {
-      "fallbackToCacheTimeout": 0
+      "fallbackToCacheTimeout": 0,
+      "url": "https://u.expo.dev/7c9de861-08f4-495a-9056-ea5513d33bb6"
     },
     "assetBundlePatterns": ["**/*"],
     "ios": {
@@ -20,14 +21,22 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "../assets/images/adaptive-icon.png",
+        "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#f1b00f"
       },
       "package": "com.yourcompany.olxvehicleclone"
     },
     "web": {
-      "favicon": "../assets/images/favicon.png"
+      "favicon": "./assets/images/favicon.png"
     },
-    "plugins": ["expo-dev-client"]
+    "plugins": ["expo-dev-client"],
+    "extra": {
+      "eas": {
+        "projectId": "7c9de861-08f4-495a-9056-ea5513d33bb6"
+      }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    }
   }
 }

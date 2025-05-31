@@ -5,11 +5,16 @@ import {
   StyleSheet,
   ImageBackground,
   Alert,
+  StatusBar,
 } from "react-native";
 import styled from "styled-components/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Input from "../components/Input";
 import Button from "../components/Button";
+
+const SpotifyGreen = "#1DB954";
+const SpotifyBlack = "#191414";
+const SpotifyWhite = "#FFFFFF";
 
 const SignupScreen = ({ navigation }) => {
   const anim1 = useRef(new Animated.Value(0)).current;
@@ -74,9 +79,13 @@ const SignupScreen = ({ navigation }) => {
 
       if (response.ok) {
         Alert.alert("Success", "Account created successfully");
-        navigation.replace("Animation");
+        navigation.replace("Login");
       } else {
-        Alert.alert("Error", "Signup failed. Please try again.");
+        const errorData = await response.json();
+        Alert.alert(
+          "Error",
+          errorData?.message || "Signup failed. Please try again."
+        );
       }
     } catch (error) {
       console.error("Signup error:", error);
@@ -85,11 +94,11 @@ const SignupScreen = ({ navigation }) => {
   };
 
   return (
-    <ImageBackground
-      source={require("../assets/images/placeholder.png")}
-      style={styles.background}
+    <Background
+      source={require("../assets/images/splash.png")}
       resizeMode="cover"
     >
+      <StatusBar barStyle="light-content" backgroundColor={SpotifyBlack} />
       <Container>
         <Inner>
           <Animated.View
@@ -99,9 +108,9 @@ const SignupScreen = ({ navigation }) => {
                 opacity: anim1,
                 transform: [
                   {
-                    translateX: anim1.interpolate({
+                    translateY: anim1.interpolate({
                       inputRange: [0, 1],
-                      outputRange: [50, 0],
+                      outputRange: [-30, 0],
                     }),
                   },
                 ],
@@ -117,9 +126,9 @@ const SignupScreen = ({ navigation }) => {
                 opacity: anim2,
                 transform: [
                   {
-                    translateX: anim2.interpolate({
+                    translateY: anim2.interpolate({
                       inputRange: [0, 1],
-                      outputRange: [50, 0],
+                      outputRange: [-20, 0],
                     }),
                   },
                 ],
@@ -128,7 +137,7 @@ const SignupScreen = ({ navigation }) => {
           >
             <Input
               placeholder="Username"
-              placeholderTextColor="#999"
+              placeholderTextColor="#B3B3B3"
               value={username}
               onChangeText={setUsername}
             />
@@ -140,9 +149,9 @@ const SignupScreen = ({ navigation }) => {
                 opacity: anim3,
                 transform: [
                   {
-                    translateX: anim3.interpolate({
+                    translateY: anim3.interpolate({
                       inputRange: [0, 1],
-                      outputRange: [50, 0],
+                      outputRange: [-20, 0],
                     }),
                   },
                 ],
@@ -151,7 +160,7 @@ const SignupScreen = ({ navigation }) => {
           >
             <Input
               placeholder="Email"
-              placeholderTextColor="#999"
+              placeholderTextColor="#B3B3B3"
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
@@ -164,9 +173,9 @@ const SignupScreen = ({ navigation }) => {
                 opacity: anim4,
                 transform: [
                   {
-                    translateX: anim4.interpolate({
+                    translateY: anim4.interpolate({
                       inputRange: [0, 1],
-                      outputRange: [50, 0],
+                      outputRange: [-20, 0],
                     }),
                   },
                 ],
@@ -175,7 +184,7 @@ const SignupScreen = ({ navigation }) => {
           >
             <Input
               placeholder="Password"
-              placeholderTextColor="#999"
+              placeholderTextColor="#B3B3B3"
               value={password}
               onChangeText={setPassword}
               secureTextEntry
@@ -188,9 +197,9 @@ const SignupScreen = ({ navigation }) => {
                 opacity: anim5,
                 transform: [
                   {
-                    translateX: anim5.interpolate({
+                    translateY: anim5.interpolate({
                       inputRange: [0, 1],
-                      outputRange: [50, 0],
+                      outputRange: [-20, 0],
                     }),
                   },
                 ],
@@ -198,78 +207,82 @@ const SignupScreen = ({ navigation }) => {
             ]}
           >
             <Button
-              title="Sign Up"
+              title="SIGN UP"
               onPress={handleSignup}
               style={styles.button}
             />
             <Link onPress={() => navigation.navigate("Login")}>
-              <LinkText>Already have an account? Log In</LinkText>
+              <LinkText>Already have an account? Log in.</LinkText>
             </Link>
           </Animated.View>
         </Inner>
       </Container>
-    </ImageBackground>
+    </Background>
   );
 };
 
 const styles = StyleSheet.create({
-  background: {
-    flex: 1,
-    width: "100%",
-    height: "100%",
+  content: {
+    marginTop: 80,
+    marginBottom: 40,
   },
-  content: { marginTop: 80 },
   inputWrapper: {
-    width: 300,
+    width: "100%",
     marginBottom: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
   },
-  buttonWrapper: { marginTop: 40 },
+  buttonWrapper: {
+    marginTop: 32,
+    width: "100%",
+  },
   button: {
-    backgroundColor: "transparent",
-    borderWidth: 3,
-    borderColor: "#fff",
-    width: 300,
-    height: 60,
+    backgroundColor: SpotifyGreen,
+    borderRadius: 25,
+    height: 50,
+    alignItems: "center",
+    justifyContent: "center",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
 });
 
+const Background = styled(ImageBackground)`
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  background-color: ${SpotifyBlack};
+`;
+
 const Container = styled.View`
   flex: 1;
-  padding-vertical: 50px;
+  padding-horizontal: 30px;
+  padding-top: 80px;
   align-items: center;
-  background: rgba(108, 99, 255, 0.7);
+  justify-content: flex-start;
 `;
 
 const Inner = styled.View`
-  width: 700px;
-  max-width: 90%;
-  height: 100%;
+  width: 100%;
   align-items: center;
 `;
 
 const Title = styled.Text`
-  font-size: 48px;
-  color: #fff;
-  margin-bottom: 40px;
+  font-size: 28px;
+  color: ${SpotifyWhite};
+  font-weight: bold;
+  margin-bottom: 32px;
   text-align: center;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
 `;
 
 const Link = styled.TouchableOpacity`
-  margin-top: 16px;
+  margin-top: 24px;
 `;
 
 const LinkText = styled.Text`
-  color: #fff;
-  font-size: 20px;
+  color: ${SpotifyWhite};
+  font-size: 16px;
   text-align: center;
   text-decoration: underline;
 `;
