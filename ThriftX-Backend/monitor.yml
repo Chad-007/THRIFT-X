@@ -3,7 +3,7 @@ kind: ServiceMonitor
 metadata:
   name: thriftx-backend-monitor
   labels:
-    release: prometheus
+    release: prometheus-operator
 spec:
   selector:
     matchLabels:
