@@ -10,7 +10,5 @@ public class ThriftXBackendApplication {
     private static final Logger log = LoggerFactory.getLogger(ThriftXBackendApplication.class);
     public static void main(String[] args) {
       SpringApplication.run(ThriftXBackendApplication.class, args);
-      
-
     }
 }

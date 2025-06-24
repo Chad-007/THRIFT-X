@@ -43,19 +43,17 @@ public class MessageService {
         for (Message message : messages) {
             Map<String, Object> messageData = new HashMap<>();
             
-            // Add all original message fields
+            
             messageData.put("id", message.getId());
             messageData.put("senderid", message.getSenderid());
             messageData.put("receiverid", message.getReceiverid());
             messageData.put("adid", message.getAdid());
             messageData.put("content", message.getContent());
             
-            // Determine the other user ID
             String otherUserId = message.getSenderid().equals(buyerId) 
                 ? message.getReceiverid() 
                 : message.getSenderid();
             
-            // Get username from users table
             String username = getUsernameById(otherUserId);
             messageData.put("username", username);
             messageData.put("otherUserId", otherUserId);
@@ -71,12 +69,12 @@ public class MessageService {
             Long userIdLong = Long.parseLong(userId);
             Optional<User> user = userRepository.findById(userIdLong);
             if (user.isPresent()) {
-                return user.get().getUsername(); // Assuming User entity has getUsername() method
+                return user.get().getUsername(); 
             } else {
-                return "User " + userId; // Fallback if user not found
+                return "User " + userId;
             }
         } catch (Exception e) {
-            return "User " + userId; // Fallback on error
+            return "User " + userId; 
         }
     }
 }
