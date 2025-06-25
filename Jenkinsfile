@@ -10,7 +10,7 @@ pipeline {
     IMAGE_NAME = 'thriftx-backend'
     REGISTRY = 'chad0'
     DOCKER_TAG = 'new'
-    KUBECONFIG = '/var/jenkins_home/.kube/config'
+    KUBECONFIG = '/var/jenkins_home/.kube/config' 
   }
 
   stages {
@@ -22,10 +22,8 @@ pipeline {
 
     stage('Build App') {
       steps {
-        container('docker-agent') {
-          dir('ThriftX-Backend') {
-            sh './mvnw clean package -DskipTests'
-          }
+        dir('ThriftX-Backend') {
+          sh './mvnw clean package -DskipTests'
         }
       }
     }
@@ -55,14 +53,13 @@ pipeline {
 
     stage('Deploy to Kubernetes') {
       steps {
-        container('docker-agent') {
-          sh '''
-            echo "Applying K8s deployment using kubeconfig at $KUBECONFIG"
-            kubectl apply -f ThriftX-Backend/deployment.yml
-            kubectl rollout restart deployment thriftx-backend
-          '''
-        }
+        sh '''
+          echo "Applying K8s deployment using kubeconfig at $KUBECONFIG"
+          kubectl apply -f ThriftX-Backend/deployment.yml
+          kubectl rollout restart deployment thriftx-backend
+        '''
       }
     }
   }
 }
+//new
