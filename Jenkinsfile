@@ -5,17 +5,23 @@ pipeline {
       yaml """
 apiVersion: v1
 kind: Pod
+metadata:
+  labels:
+    some-label: docker
 spec:
   containers:
   - name: docker-agent
     image: chad0/jenkins-with-docker
     command:
-    - sleep
-    args:
-    - "9999999"
+    - cat
+    tty: true
     env:
     - name: DOCKER_HOST
       value: tcp://localhost:2375
+    volumeMounts:
+    - name: docker-graph
+      mountPath: /var/lib/docker
+
   - name: docker
     image: docker:dind
     securityContext:
@@ -26,6 +32,7 @@ spec:
     volumeMounts:
     - name: docker-graph
       mountPath: /var/lib/docker
+
   volumes:
   - name: docker-graph
     emptyDir: {}
@@ -37,7 +44,7 @@ spec:
     IMAGE_NAME = 'thriftx-backend'
     REGISTRY = 'chad0'
     DOCKER_TAG = 'new'
-    KUBECONFIG = '/var/jenkins_home/.kube/config' 
+    KUBECONFIG = '/var/jenkins_home/.kube/config'
   }
 
   stages {
