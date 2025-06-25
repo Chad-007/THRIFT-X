@@ -1,7 +1,7 @@
 pipeline {
    agent {
     kubernetes {
-      label 'docker-agent'
+      inheritFrom 'docker-agent'
     }
   }
 
@@ -58,4 +58,4 @@ pipeline {
     }
   }
 }
-//nothing  new new 
+//nothing  new new new 
