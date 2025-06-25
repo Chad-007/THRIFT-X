@@ -1,5 +1,10 @@
 pipeline {
-  agent any
+   agent {
+    kubernetes {
+      label 'docker-agent'
+    }
+  }
+
 
   environment {
     IMAGE_NAME = 'thriftx-backend'
@@ -53,4 +58,4 @@ pipeline {
     }
   }
 }
-//nothing  new new new
+//nothing  new new 
