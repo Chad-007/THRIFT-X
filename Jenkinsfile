@@ -1,7 +1,8 @@
 pipeline {
    agent {
     kubernetes {
-      inheritFrom 'docker-agent'
+      inheritFrom 'default'
+      defaultContainer 'docker-agent'
     }
   }
 
@@ -58,4 +59,4 @@ pipeline {
     }
   }
 }
-//nothing  new new another one
+//nothing  new new another new
