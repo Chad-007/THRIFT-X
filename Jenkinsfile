@@ -2,7 +2,7 @@
     agent {
       kubernetes {
         defaultContainer 'docker-agent'
-        yamlMergeStrategy 'override'
+       // yamFile "overridePodYAML"
         yaml """
   apiVersion: v1
   kind: Pod
@@ -14,30 +14,19 @@
     - name: docker-agent
       image: chad0/jenkins-with-docker
       command:
-      - cat
-      tty: true
-      env:
-        - name: DOCKER_HOST
-          value: tcp://localhost:2375
-        - name: DOCKER_TLS_VERIFY
-          value: "0"
-        - name: DOCKER_CERT_PATH
-          value: ""
-
-    - name: docker
-      image: docker:dind
+      - sleep
+      args:
+      - "9999999"
       securityContext:
         privileged: true
-      args:
-      - --host=tcp://0.0.0.0:2375
-      - --host=unix:///var/run/docker.sock
+        runAsUser: 0
       volumeMounts:
-      - name: docker-graph
-        mountPath: /var/lib/docker
-
+      - name: docker-sock
+        mountPath: /var/run/docker.sock
     volumes:
-    - name: docker-graph
-      emptyDir: {}
+    - name: docker-sock
+      hostPath:
+        path: /var/run/docker.sock
   """
       }
     }
@@ -46,7 +35,7 @@
       IMAGE_NAME = 'thriftx-backend'
       REGISTRY = 'chad0'
       DOCKER_TAG = 'new'
-      KUBECONFIG = '/var/jenkins_home/.kube/config'
+      KUBECONFIG = '/var/jenkins_home/.kube/config' 
     }
 
     stages {
