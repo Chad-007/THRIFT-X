@@ -5,9 +5,6 @@ pipeline {
       yaml """
 apiVersion: v1
 kind: Pod
-metadata:
-  labels:
-    some-label: docker
 spec:
   containers:
   - name: docker-agent
@@ -16,16 +13,22 @@ spec:
     - sleep
     args:
     - "9999999"
+    env:
+    - name: DOCKER_HOST
+      value: tcp://localhost:2375
+  - name: docker
+    image: docker:dind
     securityContext:
       privileged: true
-      runAsUser: 0
+    args:
+    - --host=tcp://0.0.0.0:2375
+    - --host=unix:///var/run/docker.sock
     volumeMounts:
-    - name: docker-sock
-      mountPath: /var/run/docker.sock
+    - name: docker-graph
+      mountPath: /var/lib/docker
   volumes:
-  - name: docker-sock
-    hostPath:
-      path: /var/run/docker.sock
+  - name: docker-graph
+    emptyDir: {}
 """
     }
   }
