@@ -24,7 +24,8 @@ jobs:
           distribution: "temurin"
 
       - name: Build Java App
-        run: ./mvnw clean package -DskipTests
+        run: cd ThriftX-Backend && \
+          ./mvnw clean package -DskipTests
 
       - name: Set up Docker
         uses: docker/setup-buildx-action@v3
