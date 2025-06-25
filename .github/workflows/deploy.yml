@@ -24,13 +24,7 @@ jobs:
           distribution: "temurin"
 
       - name: Build Java App
-        run: cd ThriftX-Backend
-      - name: Build with Maven
-        uses: actions/setup-java@v4
-        with:
-          maven-version: "3.9.6"
-      - name: Build Java App
-        run: mvn clean package -DskipTests
+        run: ./ThriftX-Backend/mvnw clean package -DskipTests
       - name: Set up Docker
         uses: docker/setup-buildx-action@v3
 
@@ -42,7 +36,7 @@ jobs:
 
       - name: Build & Push Docker image
         run: |
-          docker build -t $REGISTRY/$IMAGE_NAME:$DOCKER_TAG .
+          docker build -t $REGISTRY/$IMAGE_NAME:$DOCKER_TAG ThriftX-Backend
           docker push $REGISTRY/$IMAGE_NAME:$DOCKER_TAG
 
       - name: Set up kubectl
