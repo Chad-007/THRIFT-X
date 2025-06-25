@@ -1,8 +1,31 @@
 pipeline {
   agent {
     kubernetes {
-      inheritFrom 'default'
       defaultContainer 'docker-agent'
+      yaml """
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    some-label: docker
+spec:
+  containers:
+  - name: docker-agent
+    image: chad0/jenkins-with-docker
+    command:
+    - sleep
+    args:
+    - "9999999"
+    securityContext:
+      privileged: true
+    volumeMounts:
+    - name: docker-sock
+      mountPath: /var/run/docker.sock
+  volumes:
+  - name: docker-sock
+    hostPath:
+      path: /var/run/docker.sock
+"""
     }
   }
 
@@ -62,4 +85,3 @@ pipeline {
     }
   }
 }
-//new oe
