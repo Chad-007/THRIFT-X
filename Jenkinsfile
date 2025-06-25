@@ -16,11 +16,12 @@ spec:
     - cat
     tty: true
     env:
-    - name: DOCKER_HOST
-      value: tcp://localhost:2375
-    volumeMounts:
-    - name: docker-graph
-      mountPath: /var/lib/docker
+      - name: DOCKER_HOST
+        value: tcp://localhost:2375
+      - name: DOCKER_TLS_VERIFY
+        value: "0"
+      - name: DOCKER_CERT_PATH
+        value: ""
 
   - name: docker
     image: docker:dind
