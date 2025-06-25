@@ -18,6 +18,7 @@ spec:
     - "9999999"
     securityContext:
       privileged: true
+      runAsUser: 0
     volumeMounts:
     - name: docker-sock
       mountPath: /var/run/docker.sock
