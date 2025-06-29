@@ -15,9 +15,9 @@
         }
         public void  saveuser(UserDetails userDetails){
             User user  = new User();
-            user.setUsername(userDetails.getusername());
-            user.setEmail(userDetails.getemail());
-            user.setPassword(userDetails.getpassword());
+            user.setUsername(userDetails.getUsername());
+            user.setEmail(userDetails.getEmail());
+            user.setPassword(userDetails.getPassword());
             userRepository.save(user);
         } 
         public boolean authenticateUser(String username, String password) {

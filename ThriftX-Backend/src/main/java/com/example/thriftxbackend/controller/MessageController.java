@@ -38,9 +38,9 @@ public ResponseEntity<User> getUserByUsername(@PathVariable String username) {
 
     @PostMapping("/login")
 public ResponseEntity<Map<String, String>> login(@RequestBody UserDetails userDetails) {
-    boolean authenticated = userService.authenticateUser(userDetails.getusername(), userDetails.getpassword());
+    boolean authenticated = userService.authenticateUser(userDetails.getUsername(), userDetails.getPassword());
     if (authenticated) {
-        User user = userService.getUserByUsername(userDetails.getusername());
+        User user = userService.getUserByUsername(userDetails.getUsername());
         Map<String, String> response = new HashMap<>();
         response.put("message", "Login successful");
         response.put("id", String.valueOf(user.getId()));
