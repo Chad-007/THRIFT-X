@@ -1,26 +1,28 @@
 package com.example.thriftxbackend.dto;
 
 public class UserDetails {
-    public String username;
-    public String email;
-    public String password;
-    public String getusername(){
+    private String username;
+    private String email;
+    private String password;
+
+    public String getUsername() {
         return username;
     }
-    public void setusername(String username){
+    public void setUsername(String username) {
         this.username = username;
     }
-    public String getemail(){
+
+    public String getEmail() {
         return email;
     }
-    public void setemail(String email){
+    public void setEmail(String email) {
         this.email = email;
     }
-    public String getpassword(){
+
+    public String getPassword() {
         return password;
     }
-    public void setpassword(String password){
+    public void setPassword(String password) {
         this.password = password;
     }
-
 }

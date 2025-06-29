@@ -1,6 +1,8 @@
 package com.example.thriftxbackend.controller;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -24,6 +26,16 @@ public class MessageController {
         userService.saveuser(userDetails);
         return "User registered successfully";
     }
+    @GetMapping("/users/{username}")
+public ResponseEntity<User> getUserByUsername(@PathVariable String username) {
+    User user = userService.getUserByUsername(username);
+    if (user != null) {
+        return ResponseEntity.ok(user);
+    } else {
+        return ResponseEntity.notFound().build();
+    }
+}
+
     @PostMapping("/login")
 public ResponseEntity<Map<String, String>> login(@RequestBody UserDetails userDetails) {
     boolean authenticated = userService.authenticateUser(userDetails.getusername(), userDetails.getpassword());

@@ -1,13 +1,14 @@
+---
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: thriftx-backend-monitor
+  name: vehicleadservice-monitor
   labels:
     release: prometheus-operator
 spec:
   selector:
     matchLabels:
-      app: thriftx-backend
+      app: vehicleadservice
   endpoints:
     - port: http-metrics
       path: /actuator/prometheus
